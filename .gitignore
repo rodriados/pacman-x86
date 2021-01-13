@@ -1,0 +1,10 @@
+obj/
+bin/
+
+*.o
+*.so
+*.out
+
+main
+pacman-x86
+gltest.c
