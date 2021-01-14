@@ -4,20 +4,27 @@
 ; @copyright 2021-present Rodrigo Siqueira
 %pragma once
 
+; Declaring OpenGL functions.
+; This is the list of all OpenGL functions needed throughout the game's codebase.
+; @see https://docs.gl/
 extern glClear
 extern glClearColor
-extern glBegin
-extern glEnd
-extern glColor3f
-extern glVertex2f
-extern glFlush
+extern glViewport
+extern glMatrixMode
+extern glLoadIdentity
+extern glOrtho
 
+%define GL_QUADS            0x0007
+%define GL_PROJECTION       0x1701
+%define GL_COLOR_BUFFER_BIT 0x4000
+
+; Declaring GLUT functions.
+; This is the list of all GLUT functions needed throughout the game's codebase.
+; @see https://www.opengl.org/resources/libraries/glut/spec3/spec3.html
 extern glutInit
 extern glutCreateWindow
 extern glutInitWindowSize
 extern glutInitWindowPosition
 extern glutDisplayFunc
+extern glutReshapeFunc
 extern glutMainLoop
-
-%define GL_COLOR_BUFFER_BIT 0x4000
-%define GL_QUADS            0x0007

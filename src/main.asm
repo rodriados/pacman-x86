@@ -6,17 +6,32 @@ bits 64
 
 %include "opengl.asm"
 
-extern canvas.Render
+%include "color.asm"
+%include "window.asm"
 
+extern canvas.RenderCallback
+extern canvas.ReshapeCallback
+extern canvas.SetBackgroundColor
+
+global window:data
 global main:function
+
+section .data
+  align 8
+  window: istruc windowT
+      at windowT.shape,     dw 640, 480
+      at windowT.position,  dw 100, 100
+      at windowT.title,     db "Pacman-x86", 0
+    iend
 
 section .rodata
   align 8
-  windowHeight:     dw 320
-  windowWidth:      dw 320
-  windowPositionX:  dw 50
-  windowPositionY:  dw 50
-  windowTitle:      db "Pacman-x86", 0
+  bgcolor: istruc colorT
+      at colorT.r,          dd 0.0
+      at colorT.g,          dd 0.0
+      at colorT.b,          dd 0.0
+      at colorT.a,          dd 1.0
+    iend
 
 section .text
   ; The game's entry point.
@@ -38,7 +53,7 @@ section .text
     ; Creating a GLUT window with the given title.
     ; Implicitly creates a new top-level window, provides the window's name to the
     ; window system and associates an OpenGL context to the new window.
-    mov   edi, windowTitle
+    mov   edi, window + windowT.title
     call  glutCreateWindow
 
     ; Setting the window's size.
@@ -46,22 +61,34 @@ section .text
     ; initial size. The window system is not obligated to use this information.
     ; The reshape callback should be used to determine the window's true dimensions.
     ; @see https://www.opengl.org/resources/libraries/glut/spec3/node11.html
-    mov   edi, dword [windowWidth]
-    mov   esi, dword [windowHeight]
+    mov   edi, dword [window + (windowT.shape + 0)]
+    mov   esi, dword [window + (windowT.shape + 4)]
     call  glutInitWindowSize
 
     ; Setting the window's position.
     ; Similarly to when the window's size, its initial position is just a suggestion
     ; that the window system is not obligated to follow.
-    mov   edi, dword [windowPositionX]
-    mov   esi, dword [windowPositionY]
+    mov   edi, dword [window + (windowT.position + 0)]
+    mov   esi, dword [window + (windowT.position + 4)]
     call  glutInitWindowPosition
 
-    ; Setting the function for rendering game's canvas on the window.
-    ; This function will be run repeatedly in order to render each frame.
-    mov   edi, canvas.Render
+    ; Setting the game's window background color.
+    ; Configures the game canvas to show a colored background if needed.
+    mov   edi, bgcolor
+    call  canvas.SetBackgroundColor
+
+    ; Setting the callback for window re-paint event.
+    ; This callback will be called repeatedly in order to render each frame.
+    mov   edi, canvas.RenderCallback
     call  glutDisplayFunc
 
+    ; Setting the callback for the window reshape event.
+    ; This callback will be called whenever the window be resized.
+    mov   edi, canvas.ReshapeCallback
+    call  glutReshapeFunc
+
+    ; Entering the event-processing infinite loop.
+    ; Puts the OpenGL system to wait for events and trigger their handlers.
     call  glutMainLoop
 
     leave
