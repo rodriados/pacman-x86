@@ -4,7 +4,7 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
-%include "opengl.inc"
+%include "opengl.asm"
 
 global canvas.Render:function
 
