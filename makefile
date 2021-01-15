@@ -57,10 +57,10 @@ $(OBJHIERARCHY):
 $(OBJDIR)/%.o: $(SRCDIR)/%.asm
 	$(NASM) $(NASMFLAGS) -MD $(patsubst %.o,%.d,$@) $< -o $@
 
-$(OBJDIR)/scene.o: $(SRCDIR)/scene.c
+$(OBJDIR)/debug.o: $(SRCDIR)/debug.c
 	gcc -c $< -o $@ $(LINKFLAGS)
 
-$(NAME): $(OBJFILES) $(OBJDIR)/scene.o
+$(NAME): $(OBJFILES) $(OBJDIR)/debug.o
 	$(LINKR) $^ $(LINKFLAGS) -o $@
 
 .PHONY: all install debug clean

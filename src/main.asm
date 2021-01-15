@@ -21,6 +21,7 @@ section .data
   window: istruc windowT
       at windowT.shape,     dw 640, 480
       at windowT.position,  dw 100, 100
+      at windowT.aspect,    dq 0
       at windowT.title,     db "Pacman-x86", 0
     iend
 
@@ -40,7 +41,6 @@ section .text
   main:
     push  rbp
     mov   rbp, rsp
-
     sub   rsp, 0x10
 
     ; Initializing the GLUT library.
