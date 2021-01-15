@@ -12,6 +12,7 @@ bits 64
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback
 extern canvas.SetBackgroundColor
+extern game.IdleCallback
 
 global window:data
 global main:function
@@ -19,8 +20,8 @@ global main:function
 section .data
   align 8
   window: istruc windowT
-      at windowT.shape,     dw 640, 480
-      at windowT.position,  dw 100, 100
+      at windowT.shape,     dd 640, 480
+      at windowT.position,  dd 100, 100
       at windowT.aspect,    dq 0
       at windowT.title,     db "Pacman-x86", 0
     iend
@@ -50,11 +51,13 @@ section .text
     lea   rdi, [rsp - 0x04]
     call  glutInit
 
-    ; Creating a GLUT window with the given title.
-    ; Implicitly creates a new top-level window, provides the window's name to the
-    ; window system and associates an OpenGL context to the new window.
-    mov   edi, window + windowT.title
-    call  glutCreateWindow
+    ; Setting the game's window to use double buffering.
+    ; A double buffering uses two display buffers to smoothen animations. The next
+    ; screen frame is prepared in a back buffer, while the current screen is held
+    ; in a front buffer. Once preparation is done, the buffers must be swapped.
+    ; @see https://www.opengl.org/resources/libraries/glut/spec3/node12.html
+    mov   edi, GLUT_DOUBLE
+    call  glutInitDisplayMode
 
     ; Setting the window's size.
     ; The window's size is just a suggestion to the window system for the window's
@@ -72,6 +75,12 @@ section .text
     mov   esi, dword [window + (windowT.position + 4)]
     call  glutInitWindowPosition
 
+    ; Creating a GLUT window with the given title.
+    ; Implicitly creates a new top-level window, provides the window's name to the
+    ; window system and associates an OpenGL context to the new window.
+    mov   edi, window + windowT.title
+    call  glutCreateWindow
+
     ; Setting the game's window background color.
     ; Configures the game canvas to show a colored background if needed.
     mov   edi, bgcolor
@@ -86,6 +95,11 @@ section .text
     ; This callback will be called whenever the window be resized.
     mov   edi, canvas.ReshapeCallback
     call  glutReshapeFunc
+
+    ; Setting the callback for an idling window.
+    ; This callback will be called whenever there are no other events to be processed.
+    mov   edi, game.IdleCallback
+    call  glutIdleFunc
 
     ; Entering the event-processing infinite loop.
     ; Puts the OpenGL system to wait for events and trigger their handlers.

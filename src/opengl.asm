@@ -25,6 +25,11 @@ extern glutInit
 extern glutCreateWindow
 extern glutInitWindowSize
 extern glutInitWindowPosition
+extern glutInitDisplayMode
+extern glutPostRedisplay
 extern glutDisplayFunc
 extern glutReshapeFunc
+extern glutIdleFunc
 extern glutMainLoop
+
+%define GLUT_DOUBLE         0x0002
