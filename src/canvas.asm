@@ -6,6 +6,7 @@ bits 64
 
 %use fp
 
+%include "debug.inc"
 %include "color.inc"
 %include "opengl.inc"
 %include "window.inc"

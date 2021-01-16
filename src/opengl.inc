@@ -32,7 +32,7 @@ extern glutPostRedisplay
 extern glutDisplayFunc
 extern glutReshapeFunc
 extern glutSpecialFunc
-extern glutIdleFunc
+extern glutTimerFunc
 extern glutMainLoop
 extern glutFullScreen
 
@@ -64,9 +64,9 @@ GLUT_WINDOW_HEIGHT:         equ 0x0067
 ; @param %1 The identifier of the state value being requested.
 ; @return %2 The requested window state's current value.
 %macro glutGetState 1-2 eax
-  mov   edi, %1
+  mov   edi, %{1}
   call  glutGet
-  %ifnidni %2, eax
-    mov   %2, eax
+  %ifnidni %{2}, eax
+    mov   %{2}, eax
   %endif
 %endmacro

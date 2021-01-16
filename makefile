@@ -35,7 +35,7 @@ all: debug
 install: $(OBJHIERARCHY)
 
 debug: install
-debug: override ENV = -g
+debug: override ENV = -g -DDEBUG
 debug: $(NAME)
 
 clean:
@@ -58,7 +58,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.asm
 	$(NASM) $(NASMFLAGS) -MD $(patsubst %.o,%.d,$@) $< -o $@
 
 $(OBJDIR)/debug.o: $(SRCDIR)/debug.c
-	gcc -c $< -o $@ $(LINKFLAGS)
+	gcc -std=c11 -c $< -o $@ $(LINKFLAGS)
 
 $(NAME): $(OBJFILES) $(OBJDIR)/debug.o
 	$(LINKR) $^ $(LINKFLAGS) -o $@

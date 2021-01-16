@@ -1,3 +1,38 @@
+/**
+ * Pacman-x86: a Pacman implementation in pure x86 assembly.
+ * @file The game's debug functions.
+ * @author Rodrigo Siqueira <rodriados@gmail.com>
+ * @copyright 2021-present Rodrigo Siqueira
+ */
+#include <time.h>
+#include <stdio.h>
+#include <stdint.h>
+
+/**
+ * Retrieves the current time since UNIX epoch.
+ * @return The current time.
+ */
+extern uint64_t getTime()
+{
+   struct timespec t;
+   timespec_get(&t, TIME_UTC);
+   return (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+}
+
+/**
+ * Calculates the game's frame rate based on this function's last call.
+ * @return The game's current frame rate.
+ */
+extern double getFrameRate()
+{
+   static uint64_t lastFrameTime = 0;
+
+   uint64_t previousTime = lastFrameTime;
+   uint64_t currentTime = lastFrameTime = getTime();
+   double elapsedTime = currentTime - previousTime;
+   return (double) 1000.0f / elapsedTime;
+}
+
 #include <GL/glut.h> 
 
 float angle = 0.0;

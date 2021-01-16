@@ -4,6 +4,7 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
+%include "debug.inc"
 %include "color.inc"
 %include "opengl.inc"
 %include "window.inc"
@@ -107,9 +108,10 @@ section .text
     ; This callback will be called in regular periods to indicate that a game tick
     ; time has passed and thus the game state must be updated. The tick timing is
     ; directly determined by the game's frame rate.
-    mov   edi, game.TickCallback
-    call  glutIdleFunc
-    ;call  glutTimerFunc
+    xor   edi, edi
+    xor   edx, edx
+    mov   esi, game.TickCallback
+    call  glutTimerFunc
 
     ; Entering the event-processing infinite loop.
     ; Puts the OpenGL system to wait for events and trigger their handlers.
