@@ -13,9 +13,9 @@ extern glMatrixMode
 extern glLoadIdentity
 extern glOrtho
 
-%assign GL_QUADS            0x0007
-%assign GL_PROJECTION       0x1701
-%assign GL_COLOR_BUFFER_BIT 0x4000
+GL_QUADS:                   equ 0x0007
+GL_PROJECTION:              equ 0x1701
+GL_COLOR_BUFFER_BIT:        equ 0x4000
 
 ; Declaring GLUT functions.
 ; This is the list of all GLUT functions needed throughout the game's codebase.
@@ -36,29 +36,29 @@ extern glutIdleFunc
 extern glutMainLoop
 extern glutFullScreen
 
-%assign GLUT_DOUBLE         0x0002
+GLUT_DOUBLE:                equ 0x0002
 
-%assign GLUT_KEY_F1         0x0001
-%assign GLUT_KEY_F2         0x0002
-%assign GLUT_KEY_F3         0x0003
-%assign GLUT_KEY_F4         0x0004
-%assign GLUT_KEY_F5         0x0005
-%assign GLUT_KEY_F6         0x0006
-%assign GLUT_KEY_F7         0x0007
-%assign GLUT_KEY_F8         0x0008
-%assign GLUT_KEY_F9         0x0009
-%assign GLUT_KEY_F10        0x000A
-%assign GLUT_KEY_F11        0x000B
-%assign GLUT_KEY_F12        0x000C
-%assign GLUT_KEY_LEFT       0x0064
-%assign GLUT_KEY_UP         0x0065
-%assign GLUT_KEY_RIGHT      0x0066
-%assign GLUT_KEY_DOWN       0x0067
+GLUT_KEY_F1:                equ 0x0001
+GLUT_KEY_F2:                equ 0x0002
+GLUT_KEY_F3:                equ 0x0003
+GLUT_KEY_F4:                equ 0x0004
+GLUT_KEY_F5:                equ 0x0005
+GLUT_KEY_F6:                equ 0x0006
+GLUT_KEY_F7:                equ 0x0007
+GLUT_KEY_F8:                equ 0x0008
+GLUT_KEY_F9:                equ 0x0009
+GLUT_KEY_F10:               equ 0x000A
+GLUT_KEY_F11:               equ 0x000B
+GLUT_KEY_F12:               equ 0x000C
+GLUT_KEY_LEFT:              equ 0x0064
+GLUT_KEY_UP:                equ 0x0065
+GLUT_KEY_RIGHT:             equ 0x0066
+GLUT_KEY_DOWN:              equ 0x0067
 
-%assign GLUT_WINDOW_X       0x0064
-%assign GLUT_WINDOW_Y       0x0065
-%assign GLUT_WINDOW_WIDTH   0x0066
-%assign GLUT_WINDOW_HEIGHT  0x0067
+GLUT_WINDOW_X:              equ 0x0064
+GLUT_WINDOW_Y:              equ 0x0065
+GLUT_WINDOW_WIDTH:          equ 0x0066
+GLUT_WINDOW_HEIGHT:         equ 0x0067
 
 ; Aliases the call for getting a state value from the current window.
 ; @param %1 The identifier of the state value being requested.

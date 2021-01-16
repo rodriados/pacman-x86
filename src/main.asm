@@ -4,9 +4,9 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
-%include "color.asm"
-%include "opengl.asm"
-%include "window.asm"
+%include "color.inc"
+%include "opengl.inc"
+%include "window.inc"
 
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback

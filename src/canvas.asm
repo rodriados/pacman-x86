@@ -6,9 +6,9 @@ bits 64
 
 %use fp
 
-%include "color.asm"
-%include "opengl.asm"
-%include "window.asm"
+%include "color.inc"
+%include "opengl.inc"
+%include "window.inc"
 
 extern window
 

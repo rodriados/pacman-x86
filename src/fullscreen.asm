@@ -4,8 +4,8 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
-%include "opengl.asm"
-%include "window.asm"
+%include "opengl.inc"
+%include "window.inc"
 
 extern window
 

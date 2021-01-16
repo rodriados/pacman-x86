@@ -4,7 +4,7 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
-%include "opengl.asm"
+%include "opengl.inc"
 
 global game.TickCallback:function
 
