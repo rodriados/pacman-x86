@@ -6,12 +6,12 @@ bits 64
 
 %include "opengl.asm"
 
-global game.IdleCallback:function
+global game.TickCallback:function
 
 section .text
   ; The game's idle event handler.
   ; Updates the game state whenever the game is idling.
   ; @param (none)
-  game.IdleCallback:
+  game.TickCallback:
     call  glutPostRedisplay
     ret

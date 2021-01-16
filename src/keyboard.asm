@@ -6,7 +6,7 @@ bits 64
 
 %include "opengl.asm"
 
-extern canvas.ToggleFullscreen
+extern fullscreen.ToggleCallback
 
 global keyboard.SpecialCallback:function
 
@@ -20,7 +20,7 @@ section .text
       cmp   edi, GLUT_KEY_F11
       jne   .quit
 
-      call  canvas.ToggleFullscreen
+      call  fullscreen.ToggleCallback
 
     .quit:
       ret

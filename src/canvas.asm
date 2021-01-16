@@ -6,28 +6,19 @@ bits 64
 
 %use fp
 
-%include "opengl.asm"
-
 %include "color.asm"
+%include "opengl.asm"
 %include "window.asm"
 
 extern window
 
-global canvas.GetAspectRatio:function
 global canvas.RenderCallback:function
 global canvas.ReshapeCallback:function
+
+global canvas.GetAspectRatio:function
 global canvas.SetBackgroundColor:function
-global canvas.ToggleFullscreen:function
 
 extern testScene
-
-; Preserves the game's canvas state before a fullscreen request.
-; This is needed because when a fullscreen operation triggers the canvas' reshape
-; callback, the window's global state is updated.
-struc preserveT
-  .shape:         resd 2      ; The preserved window's width and height.
-  .position:      resd 2      ; The preserved window's position on screen.
-endstruc
 
 section .text
   ; The game's window re-paint event handler.
@@ -93,28 +84,6 @@ section .text
     ret
 
 
-  ; Toggles the game's window fullscreen mode.
-  ; When toggled off of the fullscreen mode, the screen must come back and be redrawn
-  ; to its previous size and position.
-  ; @param (none)
-  canvas.ToggleFullscreen:
-    xor   byte [window + windowT.fullscreen], 0x01
-    jnz   _.fullscreen.ToggleOn
-    jmp   _.fullscreen.ToggleOff
-    ret
-
-
-  ; Defines the game's background color.
-  ; @param rdi The color to paint the background with.
-  canvas.SetBackgroundColor:
-    movss xmm0, [rdi + colorT.r]
-    movss xmm1, [rdi + colorT.g]
-    movss xmm2, [rdi + colorT.b]
-    movss xmm3, [rdi + colorT.a]
-    call  glClearColor
-    ret
-
-
   ; Informs the window's current aspect ratio.
   ; @return xmm0 The window's aspect ratio.
   canvas.GetAspectRatio:
@@ -126,6 +95,17 @@ section .text
     divsd     xmm0, xmm1
 
     movsd     qword [window + windowT.aspect], xmm0
+    ret
+
+
+  ; Defines the game's background color.
+  ; @param rdi The color to paint the background with.
+  canvas.SetBackgroundColor:
+    movss xmm0, [rdi + colorT.r]
+    movss xmm1, [rdi + colorT.g]
+    movss xmm2, [rdi + colorT.b]
+    movss xmm3, [rdi + colorT.a]
+    call  glClearColor
     ret
 
 
@@ -159,45 +139,6 @@ section .text
     .ready:
       call  glOrtho
       ret
-
-
-section .bss
-  preserve:       resb preserveT_size
-
-section .text
-  ; Copies the current window's state and toggles the fullscreen mode on.
-  ; @param (none)
-  _.fullscreen.ToggleOn:
-    glutGetState GLUT_WINDOW_X
-    mov   dword [preserve + preserveT.position + 0], eax
-
-    glutGetState GLUT_WINDOW_Y
-    mov   dword [preserve + preserveT.position + 4], eax
-
-    mov   ecx, dword [windowT.shapeX(window)]
-    mov   edx, dword [windowT.shapeY(window)]
-    mov   dword [preserve + preserveT.shape + 0], ecx
-    mov   dword [preserve + preserveT.shape + 4], edx
-
-    call  glutFullScreen
-    ret
-
-
-  ; Restores the current window's previous state and leaves fullscreen mode.
-  ; @param (none)
-  _.fullscreen.ToggleOff:
-    mov   edi, dword [preserve + preserveT.shape + 0]
-    mov   esi, dword [preserve + preserveT.shape + 4]
-    mov   dword [windowT.shapeX(window)], edi
-    mov   dword [windowT.shapeY(window)], esi
-    call  glutReshapeWindow
-
-    mov   edi, dword [preserve + preserveT.position + 0]
-    mov   esi, dword [preserve + preserveT.position + 4]
-    mov   dword [windowT.positionX(window)], edi
-    mov   dword [windowT.positionY(window)], esi
-    call  glutPositionWindow
-    ret
 
 
 section .rodata

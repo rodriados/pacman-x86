@@ -4,16 +4,16 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
-%include "opengl.asm"
-
 %include "color.asm"
+%include "opengl.asm"
 %include "window.asm"
 
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback
-extern canvas.SetBackgroundColor
 extern keyboard.SpecialCallback
-extern game.IdleCallback
+extern game.TickCallback
+
+extern canvas.SetBackgroundColor
 
 global window:data
 global main:function
@@ -103,10 +103,13 @@ section .text
     mov   edi, keyboard.SpecialCallback
     call  glutSpecialFunc
 
-    ; Setting the callback for an idling window.
-    ; This callback will be called whenever there are no other events to be processed.
-    mov   edi, game.IdleCallback
+    ; Setting the callback for the game's tick event.
+    ; This callback will be called in regular periods to indicate that a game tick
+    ; time has passed and thus the game state must be updated. The tick timing is
+    ; directly determined by the game's frame rate.
+    mov   edi, game.TickCallback
     call  glutIdleFunc
+    ;call  glutTimerFunc
 
     ; Entering the event-processing infinite loop.
     ; Puts the OpenGL system to wait for events and trigger their handlers.
