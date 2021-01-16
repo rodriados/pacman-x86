@@ -12,6 +12,7 @@ bits 64
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback
 extern canvas.SetBackgroundColor
+extern keyboard.SpecialCallback
 extern game.IdleCallback
 
 global window:data
@@ -20,10 +21,11 @@ global main:function
 section .data
   align 8
   window: istruc windowT
-      at windowT.shape,     dd 640, 480
-      at windowT.position,  dd 100, 100
-      at windowT.aspect,    dq 0
-      at windowT.title,     db "Pacman-x86", 0
+      at windowT.shape,       dd 640, 480
+      at windowT.position,    dd 100, 100
+      at windowT.aspect,      dq 0
+      at windowT.fullscreen,  db 0
+      at windowT.title,       db "Pacman-x86", 0
     iend
 
 section .rodata
@@ -64,15 +66,15 @@ section .text
     ; initial size. The window system is not obligated to use this information.
     ; The reshape callback should be used to determine the window's true dimensions.
     ; @see https://www.opengl.org/resources/libraries/glut/spec3/node11.html
-    mov   edi, dword [window + (windowT.shape + 0)]
-    mov   esi, dword [window + (windowT.shape + 4)]
+    mov   edi, dword [windowT.shapeX(window)]
+    mov   esi, dword [windowT.shapeY(window)]
     call  glutInitWindowSize
 
     ; Setting the window's position.
     ; Similarly to when the window's size, its initial position is just a suggestion
     ; that the window system is not obligated to follow.
-    mov   edi, dword [window + (windowT.position + 0)]
-    mov   esi, dword [window + (windowT.position + 4)]
+    mov   edi, dword [windowT.positionX(window)]
+    mov   esi, dword [windowT.positionY(window)]
     call  glutInitWindowPosition
 
     ; Creating a GLUT window with the given title.
@@ -95,6 +97,11 @@ section .text
     ; This callback will be called whenever the window be resized.
     mov   edi, canvas.ReshapeCallback
     call  glutReshapeFunc
+
+    ; Setting the callback for the keyboard's special buttons event.
+    ; This callback will be called whenever a special key is pressed.
+    mov   edi, keyboard.SpecialCallback
+    call  glutSpecialFunc
 
     ; Setting the callback for an idling window.
     ; This callback will be called whenever there are no other events to be processed.

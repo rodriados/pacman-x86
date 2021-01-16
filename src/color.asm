@@ -2,7 +2,6 @@
 ; @file The game's color structure type declaration.
 ; @author Rodrigo Siqueira <rodriados@gmail.com>
 ; @copyright 2021-present Rodrigo Siqueira
-%pragma once
 
 ; Represents an OpenGL color structure.
 ; This structure declares the individual values of a 4-channel color.

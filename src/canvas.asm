@@ -4,6 +4,8 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
+%use fp
+
 %include "opengl.asm"
 
 %include "color.asm"
@@ -15,8 +17,17 @@ global canvas.GetAspectRatio:function
 global canvas.RenderCallback:function
 global canvas.ReshapeCallback:function
 global canvas.SetBackgroundColor:function
+global canvas.ToggleFullscreen:function
 
 extern testScene
+
+; Preserves the game's canvas state before a fullscreen request.
+; This is needed because when a fullscreen operation triggers the canvas' reshape
+; callback, the window's global state is updated.
+struc preserveT
+  .shape:         resd 2      ; The preserved window's width and height.
+  .position:      resd 2      ; The preserved window's position on screen.
+endstruc
 
 section .text
   ; The game's window re-paint event handler.
@@ -37,6 +48,7 @@ section .text
     pop   rbp
     ret
 
+
   ; The game's window reshape event handler.
   ; Adjusts the window's properties whenever it is resized.
   ; @param rdi The window's new width.
@@ -53,8 +65,8 @@ section .text
     mov   dword [rbp - 4], edi
     mov   dword [rbp - 8], esi
 
-    mov   dword [window + (windowT.shape + 0)], edi
-    mov   dword [window + (windowT.shape + 4)], esi
+    mov   dword [windowT.shapeX(window)], edi
+    mov   dword [windowT.shapeY(window)], esi
 
     ; Configuring the game's window viewport.
     ; The viewport refers to the display area on the screen.
@@ -75,10 +87,22 @@ section .text
     ; Calculates the window's new aspect ratio and adjusts the mapping between the
     ; window's clipping area and its viewport.
     call  canvas.GetAspectRatio
-    call  canvas._SetCanvasOrthographicMatrix
+    call  _.canvas.SetCanvasOrthographicMatrix
 
     leave
     ret
+
+
+  ; Toggles the game's window fullscreen mode.
+  ; When toggled off of the fullscreen mode, the screen must come back and be redrawn
+  ; to its previous size and position.
+  ; @param (none)
+  canvas.ToggleFullscreen:
+    xor   byte [window + windowT.fullscreen], 0x01
+    jnz   _.fullscreen.ToggleOn
+    jmp   _.fullscreen.ToggleOff
+    ret
+
 
   ; Defines the game's background color.
   ; @param rdi The color to paint the background with.
@@ -88,8 +112,8 @@ section .text
     movss xmm2, [rdi + colorT.b]
     movss xmm3, [rdi + colorT.a]
     call  glClearColor
-
     ret
+
 
   ; Informs the window's current aspect ratio.
   ; @return xmm0 The window's aspect ratio.
@@ -97,16 +121,17 @@ section .text
     pxor      xmm0, xmm0
     pxor      xmm1, xmm1
 
-    cvtsi2sd  xmm0, dword [window + (windowT.shape + 0)]
-    cvtsi2sd  xmm1, dword [window + (windowT.shape + 4)]
+    cvtsi2sd  xmm0, dword [windowT.shapeX(window)]
+    cvtsi2sd  xmm1, dword [windowT.shapeY(window)]
     divsd     xmm0, xmm1
 
     movsd     qword [window + windowT.aspect], xmm0
     ret
 
+
   ; Multiplies the current clipping matrix with an orthographic matrix.
   ; @param xmm0 The window's new aspect ratio.
-  canvas._SetCanvasOrthographicMatrix:
+  _.canvas.SetCanvasOrthographicMatrix:
       movsd   xmm2, qword [neg1f]
       movsd   xmm3, qword [pos1f]
       movsd   xmm4, xmm2
@@ -134,7 +159,47 @@ section .text
     .ready:
       call  glOrtho
       ret
-    
+
+
+section .bss
+  preserve:       resb preserveT_size
+
+section .text
+  ; Copies the current window's state and toggles the fullscreen mode on.
+  ; @param (none)
+  _.fullscreen.ToggleOn:
+    glutGetState GLUT_WINDOW_X
+    mov   dword [preserve + preserveT.position + 0], eax
+
+    glutGetState GLUT_WINDOW_Y
+    mov   dword [preserve + preserveT.position + 4], eax
+
+    mov   ecx, dword [windowT.shapeX(window)]
+    mov   edx, dword [windowT.shapeY(window)]
+    mov   dword [preserve + preserveT.shape + 0], ecx
+    mov   dword [preserve + preserveT.shape + 4], edx
+
+    call  glutFullScreen
+    ret
+
+
+  ; Restores the current window's previous state and leaves fullscreen mode.
+  ; @param (none)
+  _.fullscreen.ToggleOff:
+    mov   edi, dword [preserve + preserveT.shape + 0]
+    mov   esi, dword [preserve + preserveT.shape + 4]
+    mov   dword [windowT.shapeX(window)], edi
+    mov   dword [windowT.shapeY(window)], esi
+    call  glutReshapeWindow
+
+    mov   edi, dword [preserve + preserveT.position + 0]
+    mov   esi, dword [preserve + preserveT.position + 4]
+    mov   dword [windowT.positionX(window)], edi
+    mov   dword [windowT.positionY(window)], esi
+    call  glutPositionWindow
+    ret
+
+
 section .rodata
-  neg1f:          dq __float64__(-1.0)
-  pos1f:          dq __float64__(+1.0)
+  neg1f:          dq float64(-1.0)
+  pos1f:          dq float64(+1.0)
