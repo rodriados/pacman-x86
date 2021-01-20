@@ -1,5 +1,5 @@
 ; Pacman-x86: a Pacman implementation in pure x86 assembly.
-; @file The game's main logic.
+; @file The game's main logic controller.
 ; @author Rodrigo Siqueira <rodriados@gmail.com>
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
@@ -9,21 +9,38 @@ bits 64
 
 global game.TickCallback:function
 
-section .rodata
-  frames:         equ 50
-  second:         equ 1000
-  tick:           dd (second / frames)
+time.fps:                 equ 50          ; The game's ideal frame per second rate.
+time.second:              equ 1000        ; The number of milliseconds in a second.
+time.tick:                equ (time.second / time.fps)
+
+; Represents the game's state values.
+; This structure is responsible for holding the game's global state, which will
+; be persisted through ticks and control the game's behavior.
+struc gameT
+  .counter:               resd 1          ; The game's internal tick counter.
+endstruc
+
+section .data
+  state: istruc gameT
+      at gameT.counter,   dd 0
+    iend
 
 section .text
   ; The game's tick event handler.
   ; Updates the game state whenever a time tick has passed.
-  ; @param edi The game's tick count since start-up.
+  ; @param (none) The game's internal tick counter is retrieved from memory.
   game.TickCallback:
     push  rbp
     mov   rbp, rsp
 
-    call _.game.ScheduleNextTick
-    ;call _.game.UpdateState
+    ; Retrieving the current game tick counter.
+    ; The tick defines the rate changes should be performed on the game's state.
+    ; W do not advance the tick here in order to allow the game logic to have total
+    ; control whether the tick should be incremented or not.
+    mov   edi, dword [state + gameT.counter]
+
+    call  _.game.ScheduleNextTick
+    call  _.game.TickGameState
 
     debug call getFrameRate
 
@@ -32,13 +49,26 @@ section .text
     pop   rbp
     ret
 
+  ; Executes a game logic tick.
+  ; A tick is the game's internal time tracker. The game considers that a tick will
+  ; always have the same difference in real time to its previous and next ticks.
+  ; Also, although it might not be a good practice in bigger game's projects, here
+  ; the game tick is directly related to the canvas refresh rate.
+  ; @param edi The game's internal tick counter.
+  _.game.TickGameState:
+    inc   dword [state + gameT.counter]
+    ret
 
   ; Schedules the next game tick event.
   ; @param edi The current game tick being handled.
+  ; @preserve rdi The game's internal tick counter.
   _.game.ScheduleNextTick:
+    push  rdi
+
     mov   edx, edi
-    mov   edi, [tick]
+    mov   edi, time.tick
     mov   esi, game.TickCallback
-    inc   edx
     call  glutTimerFunc
+
+    pop   rdi
     ret

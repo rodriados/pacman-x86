@@ -26,7 +26,7 @@ section .data
   ; Toggles the game's window fullscreen mode.
   ; When toggled off of the fullscreen mode, the screen must come back and be redrawn
   ; to its previous size and position.
-  ; @param (none)
+  ; @param (none) The goggle state is queried from memory.
   fullscreen.ToggleCallback:
       xor   byte [window + windowT.fullscreen], 0x01
       jz    .toggleOff
@@ -38,8 +38,8 @@ section .data
       glutGetState GLUT_WINDOW_Y
       mov   dword [preserve + preserveT.position + 4], eax
 
-      mov   ecx, dword [windowT.shapeX(window)]
-      mov   edx, dword [windowT.shapeY(window)]
+      mov   ecx, dword [window + windowT.shapeX]
+      mov   edx, dword [window + windowT.shapeY]
       mov   dword [preserve + preserveT.shape + 0], ecx
       mov   dword [preserve + preserveT.shape + 4], edx
 
@@ -49,13 +49,13 @@ section .data
     .toggleOff:
       mov   edi, dword [preserve + preserveT.shape + 0]
       mov   esi, dword [preserve + preserveT.shape + 4]
-      mov   dword [windowT.shapeX(window)], edi
-      mov   dword [windowT.shapeY(window)], esi
+      mov   dword [window + windowT.shapeX], edi
+      mov   dword [window + windowT.shapeY], esi
       call  glutReshapeWindow
 
       mov   edi, dword [preserve + preserveT.position + 0]
       mov   esi, dword [preserve + preserveT.position + 4]
-      mov   dword [windowT.positionX(window)], edi
-      mov   dword [windowT.positionY(window)], esi
+      mov   dword [window + windowT.positionX], edi
+      mov   dword [window + windowT.positionY], esi
       call  glutPositionWindow
       ret

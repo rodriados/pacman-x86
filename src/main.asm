@@ -67,15 +67,15 @@ section .text
     ; initial size. The window system is not obligated to use this information.
     ; The reshape callback should be used to determine the window's true dimensions.
     ; @see https://www.opengl.org/resources/libraries/glut/spec3/node11.html
-    mov   edi, dword [windowT.shapeX(window)]
-    mov   esi, dword [windowT.shapeY(window)]
+    mov   edi, dword [window + windowT.shapeX]
+    mov   esi, dword [window + windowT.shapeY]
     call  glutInitWindowSize
 
     ; Setting the window's position.
     ; Similarly to when the window's size, its initial position is just a suggestion
     ; that the window system is not obligated to follow.
-    mov   edi, dword [windowT.positionX(window)]
-    mov   esi, dword [windowT.positionY(window)]
+    mov   edi, dword [window + windowT.positionX]
+    mov   esi, dword [window + windowT.positionY]
     call  glutInitWindowPosition
 
     ; Creating a GLUT window with the given title.

@@ -14,9 +14,12 @@ struc windowT
   .title:       resb 20     ; The window's title string.
 endstruc
 
-; Defining macros to help inquiring the window object.
-; @param windowT w An allocated window state instance.
-%define windowT.shapeX(w)     ((w) + windowT.shape + 0)
-%define windowT.shapeY(w)     ((w) + windowT.shape + 4)
-%define windowT.positionX(w)  ((w) + windowT.position + 0)
-%define windowT.positionY(w)  ((w) + windowT.position + 4)
+; Defining macros to help inquiring the window's shape.
+; @param (none) Gets the requested shape dimension by its name.
+%define windowT.shapeX      (windowT.shape + 0)
+%define windowT.shapeY      (windowT.shape + 4)
+
+; Defining macros to help inquiring the window's position.
+; @param (none) Gets the requested position dimension by its name.
+%define windowT.positionX   (windowT.position + 0)
+%define windowT.positionY   (windowT.position + 4)

@@ -11,3 +11,7 @@ struc colorT
   .b:         resd 1        ; The color's B-channel value.
   .a:         resd 1        ; The color's A-channel value.
 endstruc
+
+; Defining macro to inquire a color by its channel offset.
+; @param c The requested channel number.
+%define colorT.channel(c)   (colorT.r + (c * 4))

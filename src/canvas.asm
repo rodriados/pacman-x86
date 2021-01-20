@@ -40,7 +40,6 @@ section .text
     pop   rbp
     ret
 
-
   ; The game's window reshape event handler.
   ; Adjusts the window's properties whenever it is resized.
   ; @param rdi The window's new width.
@@ -57,8 +56,8 @@ section .text
     mov   dword [rbp - 4], edi
     mov   dword [rbp - 8], esi
 
-    mov   dword [windowT.shapeX(window)], edi
-    mov   dword [windowT.shapeY(window)], esi
+    mov   dword [window + windowT.shapeX], edi
+    mov   dword [window + windowT.shapeY], esi
 
     ; Configuring the game's window viewport.
     ; The viewport refers to the display area on the screen.
@@ -84,20 +83,18 @@ section .text
     leave
     ret
 
-
   ; Informs the window's current aspect ratio.
   ; @return xmm0 The window's aspect ratio.
   canvas.GetAspectRatio:
     pxor      xmm0, xmm0
     pxor      xmm1, xmm1
 
-    cvtsi2sd  xmm0, dword [windowT.shapeX(window)]
-    cvtsi2sd  xmm1, dword [windowT.shapeY(window)]
+    cvtsi2sd  xmm0, dword [window + windowT.shapeX]
+    cvtsi2sd  xmm1, dword [window + windowT.shapeY]
     divsd     xmm0, xmm1
 
     movsd     qword [window + windowT.aspect], xmm0
     ret
-
 
   ; Defines the game's background color.
   ; @param rdi The color to paint the background with.
@@ -108,7 +105,6 @@ section .text
     movss xmm3, [rdi + colorT.a]
     call  glClearColor
     ret
-
 
   ; Multiplies the current clipping matrix with an orthographic matrix.
   ; @param xmm0 The window's new aspect ratio.
@@ -140,7 +136,6 @@ section .text
     .ready:
       call  glOrtho
       ret
-
 
 section .rodata
   neg1f:          dq float64(-1.0)
