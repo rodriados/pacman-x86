@@ -13,7 +13,7 @@ time.fps:                 equ 50          ; The game's ideal frame per second ra
 time.second:              equ 1000        ; The number of milliseconds in a second.
 time.tick:                equ (time.second / time.fps)
 
-; Represents the game's state values.
+; Represents the game's logic state values.
 ; This structure is responsible for holding the game's global state, which will
 ; be persisted through ticks and control the game's behavior.
 struc gameT
@@ -35,12 +35,12 @@ section .text
 
     ; Retrieving the current game tick counter.
     ; The tick defines the rate changes should be performed on the game's state.
-    ; W do not advance the tick here in order to allow the game logic to have total
+    ; We do not advance the tick here in order to allow the game logic to have total
     ; control whether the tick should be incremented or not.
     mov   edi, dword [state + gameT.counter]
 
     call  _.game.ScheduleNextTick
-    call  _.game.TickGameState
+    call  _.game.AdvanceGameState
 
     debug call getFrameRate
 
@@ -49,13 +49,13 @@ section .text
     pop   rbp
     ret
 
-  ; Executes a game logic tick.
-  ; A tick is the game's internal time tracker. The game considers that a tick will
-  ; always have the same difference in real time to its previous and next ticks.
-  ; Also, although it might not be a good practice in bigger game's projects, here
-  ; the game tick is directly related to the canvas refresh rate.
+  ; Advances one tick of the game's logic.
+  ; A tick is the game's internal time tracker. The game's logic considers that
+  ; two consecutive ticks will always have a constant real-time difference in between
+  ; them. Also, although it might not be a good practice in bigger games' projects,
+  ; here the game tick is directly related to the canvas refresh rate.
   ; @param edi The game's internal tick counter.
-  _.game.TickGameState:
+  _.game.AdvanceGameState:
     inc   dword [state + gameT.counter]
     ret
 
