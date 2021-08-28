@@ -35,6 +35,7 @@ extern glutSpecialFunc
 extern glutTimerFunc
 extern glutMainLoop
 extern glutFullScreen
+extern glutSwapBuffers
 
 GLUT_DOUBLE:                equ 0x0002
 

@@ -7,7 +7,10 @@ bits 64
 %include "debug.inc"
 %include "opengl.inc"
 
+extern testScene
+
 global game.TickCallback:function
+global game.DrawFrameCallback:function
 
 time.fps:                 equ 50          ; The game's ideal frame per second rate.
 time.second:              equ 1000        ; The number of milliseconds in a second.
@@ -45,6 +48,19 @@ section .text
     debug call getFrameRate
 
     call  glutPostRedisplay
+
+    pop   rbp
+    ret
+
+  ; The frame drawing callback.
+  ; Draws a new game frame to be displayed at the user's window.
+  ; @param (none) The current game state is retrieved from memory.
+  game.DrawFrameCallback:
+    push  rbp
+    mov   rbp, rsp
+
+    call  testScene
+    call  glutSwapBuffers
 
     pop   rbp
     ret

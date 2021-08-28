@@ -1,7 +1,7 @@
 # Pacman-x86: a Pacman implementation in pure x86 assembly.
 # @file The game's compilation and instalation script.
 # @author Rodrigo Siqueira <rodriados@gmail.com>
-# @copyright 2018-present Rodrigo Siqueira
+# @copyright 2021-present Rodrigo Siqueira
 NAME = pacman-x86
 
 SRCDIR = src
@@ -20,7 +20,7 @@ LINKRFLAGS ?= -lGL -lglut
 FLAGS ?=
 
 NASMFLAGS = -f$(ARCH) -I$(SRCDIR) $(ENV) $(FLAGS)
-LINKFLAGS = $(LINKRFLAGS) $(ENV) $(FLAGS)
+LINKFLAGS = $(LINKRFLAGS) $(ENV) $(FLAGS) -no-pie
 
 # Lists all files to be compiled and separates them according to their corresponding
 # compilers. Changes in any of these files in will trigger conditional recompilation.

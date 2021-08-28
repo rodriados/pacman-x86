@@ -11,6 +11,7 @@ bits 64
 %include "opengl.inc"
 %include "window.inc"
 
+extern game.DrawFrameCallback
 extern window
 
 global canvas.RenderCallback:function
@@ -18,8 +19,6 @@ global canvas.ReshapeCallback:function
 
 global canvas.GetAspectRatio:function
 global canvas.SetBackgroundColor:function
-
-extern testScene
 
 section .text
   ; The game's window re-paint event handler.
@@ -30,12 +29,16 @@ section .text
     mov   rbp, rsp
 
     ; Clearing the window canvas.
-    ; Clears the color buffers in the whole game's window canvas, and sets it
-    ; to the clear color previously defined. 
+    ; Clears the color buffers in the whole game's window canvas, and sets it to
+    ; the clear color previously defined.
     mov   edi, GL_COLOR_BUFFER_BIT
     call  glClear
 
-    call  testScene
+    ; Delegates frame redering to the game logic.
+    ; Calls the game logic module to draw a frame when it is time to perform a window
+    ; repaint. This delegation achieves centralizing all logic related to the game's
+    ; controls, progress and drawing in a single module.
+    call  game.DrawFrameCallback
 
     pop   rbp
     ret

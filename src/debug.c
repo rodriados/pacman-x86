@@ -119,7 +119,5 @@ void testScene()
    glEnd();
    glPopMatrix();
  
-   glutSwapBuffers();
- 
    angle += 0.2f;
 }

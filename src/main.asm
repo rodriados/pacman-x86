@@ -11,10 +11,9 @@ bits 64
 
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback
+extern canvas.SetBackgroundColor
 extern keyboard.SpecialCallback
 extern game.TickCallback
-
-extern canvas.SetBackgroundColor
 
 global window:data
 global main:function
