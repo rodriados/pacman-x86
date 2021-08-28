@@ -1,1 +1,2 @@
-*.inc linguist-language=Assembly
+*       text=auto
+*.inc   linguist-language=Assembly
