@@ -11,6 +11,15 @@ extern testScene
 
 global game.TickCallback:function
 global game.DrawFrameCallback:function
+global game.KeyArrowUpCallback:function
+global game.KeyArrowDownCallback:function
+global game.KeyArrowLeftCallback:function
+global game.KeyArrowRightCallback:function
+
+extern player.KeyArrowUpCallback
+extern player.KeyArrowDownCallback
+extern player.KeyArrowLeftCallback
+extern player.KeyArrowRightCallback
 
 time.fps:                 equ 50          ; The game's ideal frame per second rate.
 time.second:              equ 1000        ; The number of milliseconds in a second.
@@ -63,6 +72,30 @@ section .text
     call  glutSwapBuffers
 
     pop   rbp
+    ret
+
+  ; The game's callback for a key arrow-up press event.
+  ; @param (none) The event has no parameters.
+  game.KeyArrowUpCallback:
+    call player.KeyArrowUpCallback
+    ret
+
+  ; The game's callback for a key arrow-down press event.
+  ; @param (none) The event has no parameters.
+  game.KeyArrowDownCallback:
+    call player.KeyArrowDownCallback
+    ret
+
+  ; The game's callback for a key arrow-left press event.
+  ; @param (none) The event has no parameters.
+  game.KeyArrowLeftCallback:
+    call player.KeyArrowLeftCallback
+    ret
+
+  ; The game's callback for a key arrow-right press event.
+  ; @param (none) The event has no parameters.
+  game.KeyArrowRightCallback:
+    call player.KeyArrowRightCallback
     ret
 
   ; Advances one tick of the game's logic.

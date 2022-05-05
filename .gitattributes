@@ -1,2 +1,6 @@
-*       text=auto
-*.inc   linguist-language=Assembly
+*.c     text=auto
+*.asm   text=auto
+*.inc   text=auto linguist-language=Assembly
+*.bin   binary
+*.png   binary
+*.bmp   binary

@@ -22,7 +22,7 @@ endstruc
 section .bss
   preserve:       resb preserveT_size
 
-section .data
+section .text
   ; Toggles the game's window fullscreen mode.
   ; When toggled off of the fullscreen mode, the screen must come back and be redrawn
   ; to its previous size and position.
