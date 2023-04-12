@@ -88,13 +88,17 @@ section .text
 
   ; Informs the window's current aspect ratio.
   ; @return xmm0 The window's aspect ratio.
+  ; @return xmm1 The window's length.
+  ; @return xmm2 The window's height.
   canvas.GetAspectRatio:
     pxor      xmm0, xmm0
     pxor      xmm1, xmm1
+    pxor      xmm2, xmm2
 
-    cvtsi2sd  xmm0, dword [window + windowT.shapeX]
-    cvtsi2sd  xmm1, dword [window + windowT.shapeY]
-    divsd     xmm0, xmm1
+    cvtsi2sd  xmm1, dword [window + windowT.shapeX]
+    cvtsi2sd  xmm2, dword [window + windowT.shapeY]
+    movsd     xmm0, xmm1
+    divsd     xmm0, xmm2
 
     movsd     qword [window + windowT.aspect], xmm0
     ret
@@ -109,37 +113,53 @@ section .text
     call  glClearColor
     ret
 
-  ; Multiplies the current clipping matrix with an orthographic matrix.
+  ; Multiplies the current clipping matrix with an orthographic matrix. This function
+  ; effectively determines the window coordinate system used by the game.
   ; @param xmm0 The window's new aspect ratio.
+  ; @param xmm1 The window's new length.
+  ; @param xmm2 The window's new height.
   _.canvas.SetCanvasOrthographicMatrix:
-      movsd   xmm2, qword [neg1f]
-      movsd   xmm3, qword [pos1f]
-      movsd   xmm4, xmm2
-      movsd   xmm5, xmm3
-      movsd   xmm6, xmm0
+      movsd   xmm4, [negativeOne]
+      movsd   xmm5, [positiveOne]
 
-      comisd  xmm0, xmm3
-      jb      .taller
+      comisd  xmm0, xmm5
+      jb      .window.isTall
 
-    ; If the window's width is bigger than its height, as usually, then we must
-    ; control the viewport's area accordingly.
-    .wider:
-      mulsd   xmm0, xmm2
-      movsd   xmm1, xmm6
+    .window.isWide:
+      movsd   xmm8, xmm0
+      subsd   xmm8, xmm5
+      divsd   xmm8, [positiveTwo]
+
+      movsd   xmm0, xmm8
+      mulsd   xmm0, xmm4
+
+      movsd   xmm1, xmm8
+      addsd   xmm1, xmm5
+
+      pxor    xmm2, xmm2
+      movsd   xmm3, xmm5
       jmp     .ready
 
-    ; If the window's height is bigger than its width, then we must control the
-    ; viewport's area accordingly, leaving blank vertical spaces if needed.
-    .taller:
-      movsd   xmm0, xmm2
-      movsd   xmm1, xmm3
-      divsd   xmm2, xmm6
-      divsd   xmm3, xmm6
+    .window.isTall:
+      movsd   xmm8, xmm2
+      divsd   xmm8, xmm1
+      subsd   xmm8, xmm5
+      divsd   xmm8, [positiveTwo]
+
+      pxor    xmm0, xmm0
+      movsd   xmm1, xmm5
+
+      movsd   xmm2, xmm8
+      mulsd   xmm2, xmm4
+
+      movsd   xmm3, xmm8
+      addsd   xmm3, xmm5
 
     .ready:
       call  glOrtho
       ret
 
 section .rodata
-  neg1f:          dq float64(-1.0)
-  pos1f:          dq float64(+1.0)
+  negativeOne:    dq float64(-1.0)
+  positiveOne:    dq float64(+1.0)
+  positiveTwo:    dq float64(+2.0)
