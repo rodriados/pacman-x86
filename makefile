@@ -13,7 +13,7 @@ LINKR ?= gcc
 # Target architecture for x86 compilation. This indicates the architecture the code
 # will be compiled to but can be changed with environment variables.
 ARCH ?= elf64
-LINKRFLAGS ?= -lGL -lglut
+LINKRFLAGS ?= -pthread -lglfw -lGLU -lGL -lXrandr -lX11 -lrt -ldl
 
 # Defining macros inside code at compile time. This can be used to enable or disable
 # certain features on code or affect the projects compilation.

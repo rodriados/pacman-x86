@@ -4,8 +4,9 @@
 ; @copyright 2021-present Rodrigo Siqueira
 bits 64
 
-%include "opengl.inc"
 %include "window.inc"
+
+%include "thirdparty/glfw.inc"
 
 extern window
 

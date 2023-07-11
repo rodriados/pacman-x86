@@ -6,10 +6,11 @@ bits 64
 
 %use fp
 
-%include "debug.inc"
 %include "color.inc"
-%include "opengl.inc"
 %include "window.inc"
+
+%include "thirdparty/glfw.inc"
+%include "thirdparty/opengl.inc"
 
 extern game.DrawFrameCallback
 extern window
@@ -23,10 +24,12 @@ global canvas.SetBackgroundColor:function
 section .text
   ; The game's window re-paint event handler.
   ; Manages the game's canvas rendering.
-  ; @param (none)
+  ; @param rdi The window's context pointer.
   canvas.RenderCallback:
     push  rbp
     mov   rbp, rsp
+
+    mov   rbx, rdi            ; Preserving the window context pointer.
 
     ; Clearing the window canvas.
     ; Clears the color buffers in the whole game's window canvas, and sets it to
@@ -40,34 +43,37 @@ section .text
     ; controls, progress and drawing in a single module.
     call  game.DrawFrameCallback
 
+    ; Shows the newly drawn frame in the window canvas.
+    ; Once a new frame has been thoroughly drawn in the back buffer, we must bring
+    ; it to the front so it is displayed by the window and a new can be drawn.
+    mov   rdi, rbx
+    call  glfwSwapBuffers
+
     pop   rbp
     ret
 
   ; The game's window reshape event handler.
   ; Adjusts the window's properties whenever it is resized.
-  ; @param rdi The window's new width.
-  ; @param rsi The window's new height.
+  ; @param rdi The window's context pointer.
+  ; @param esi The window's new width.
+  ; @param edx The window's new height.
   canvas.ReshapeCallback:
     push  rbp
     mov   rbp, rsp
-    sub   rsp, 0x10
 
-    cmp   esi, 0x00
+    cmp   edx, 0x00
     mov   eax, 0x01
-    cmove esi, eax
+    cmove edx, eax
 
-    mov   dword [rbp - 4], edi
-    mov   dword [rbp - 8], esi
-
-    mov   dword [window + windowT.shapeX], edi
-    mov   dword [window + windowT.shapeY], esi
+    mov   dword [window + windowT.shapeX], esi
+    mov   dword [window + windowT.shapeY], edx
 
     ; Configuring the game's window viewport.
     ; The viewport refers to the display area on the screen.
+    mov   ecx, edx
+    mov   edx, esi
     mov   edi, 0x00
     mov   esi, 0x00
-    mov   edx, dword [rbp - 4]
-    mov   ecx, dword [rbp - 8]
     call  glViewport
 
     ; Configuring the window's clipping area.

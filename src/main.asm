@@ -6,14 +6,17 @@ bits 64
 
 %include "debug.inc"
 %include "color.inc"
-%include "opengl.inc"
 %include "window.inc"
+
+%include "thirdparty/glfw.inc"
+%include "thirdparty/opengl.inc"
 
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback
 extern canvas.SetBackgroundColor
-extern keyboard.SpecialCallback
+extern keyboard.KeyCallback
 extern game.TickCallback
+extern game.FinalizeCallback
 
 global window:data
 global main:function
@@ -42,79 +45,126 @@ section .text
   ; @param edi The number of command line arguments.
   ; @param rsi A memory pointer to the list of command line arguments.
   main:
-    push  rbp
-    mov   rbp, rsp
-    sub   rsp, 0x10
+      push  rbp
+      mov   rbp, rsp
 
-    ; Initializing the GLUT library.
-    ; Here, the GLUT library is initialized and window session is negotiated with
-    ; the window system. No rendering can occur before this call.
-    mov   [rsp - 0x04], edi
-    lea   rdi, [rsp - 0x04]
-    call  glutInit
+      ; Initialization of the GLFW library.
+      ; Here, the GLFW library is initialized and all resources needed are allocated
+      ; by the library. If GLFW could not be initialized, then we bail out.
+      call  glfwInit
 
-    ; Setting the game's window to use double buffering.
-    ; A double buffering uses two display buffers to smoothen animations. The next
-    ; screen frame is prepared in a back buffer, while the current screen is held
-    ; in a front buffer. Once preparation is done, the buffers must be swapped.
-    ; @see https://www.opengl.org/resources/libraries/glut/spec3/node12.html
-    mov   edi, GLUT_DOUBLE
-    call  glutInitDisplayMode
+      cmp   eax, 0x00
+      je    .exit
 
-    ; Setting the window's size.
-    ; The window's size is just a suggestion to the window system for the window's
-    ; initial size. The window system is not obligated to use this information.
-    ; The reshape callback should be used to determine the window's true dimensions.
-    ; @see https://www.opengl.org/resources/libraries/glut/spec3/node11.html
-    mov   edi, dword [window + windowT.shapeX]
-    mov   esi, dword [window + windowT.shapeY]
-    call  glutInitWindowSize
+      ; Creation of a window.
+      ; A window must be created as a canvas for the game. Also, the OpenGL context
+      ; is attached to the newly window, which shall be unique. The window's size
+      ; parameters are just a suggestion to the window system for the window's initial
+      ; size, as it is not obligated to use this information.
+      mov   edi, dword [window + windowT.shapeX]
+      mov   esi, dword [window + windowT.shapeY]
+      mov   rdx, window + windowT.title
+      xor   ecx, ecx
+      xor   r8d, r8d
+      call  glfwCreateWindow
 
-    ; Setting the window's position.
-    ; Similarly to when the window's size, its initial position is just a suggestion
-    ; that the window system is not obligated to follow.
-    mov   edi, dword [window + windowT.positionX]
-    mov   esi, dword [window + windowT.positionY]
-    call  glutInitWindowPosition
+      mov   rbx, rax          ; Preserving the window context pointer.
+      cmp   rbx, 0x00
+      je    .terminate.fail
 
-    ; Creating a GLUT window with the given title.
-    ; Implicitly creates a new top-level window, provides the window's name to the
-    ; window system and associates an OpenGL context to the new window.
-    mov   edi, window + windowT.title
-    call  glutCreateWindow
+      ; Set the created window as the current context.
+      ; As no other windows should be created during the execution of the game,
+      ; we can permanently set the one recently created as the current context.
+      mov   rdi, rbx
+      call  glfwMakeContextCurrent
 
-    ; Setting the game's window background color.
-    ; Configures the game canvas to show a colored background if needed.
-    mov   edi, bgcolor
-    call  canvas.SetBackgroundColor
+      ; Setting the game's window background color.
+      ; Configures the game canvas to show a colored background if needed.
+      mov   edi, bgcolor
+      call  canvas.SetBackgroundColor
 
-    ; Setting the callback for window re-paint event.
-    ; This callback will be called repeatedly in order to render each frame.
-    mov   edi, canvas.RenderCallback
-    call  glutDisplayFunc
+      ; Setting the callback for the window resize event.
+      ; This callback will be called whenever the window is resized.
+      mov   rdi, rbx
+      mov   esi, canvas.ReshapeCallback
+      call  glfwSetWindowSizeCallback
 
-    ; Setting the callback for the window reshape event.
-    ; This callback will be called whenever the window be resized.
-    mov   edi, canvas.ReshapeCallback
-    call  glutReshapeFunc
+      ; Setting the callback for the keyboard's input event.
+      ; This callback will be called whenever a there's a keyboard input event.
+      mov   rdi, rbx
+      mov   esi, keyboard.KeyCallback
+      call  glfwSetKeyCallback
 
-    ; Setting the callback for the keyboard's special buttons event.
-    ; This callback will be called whenever a special key is pressed.
-    mov   edi, keyboard.SpecialCallback
-    call  glutSpecialFunc
+      ; Setting the window's position.
+      ; Similarly to when setting the window's size, its initial position is just
+      ; a suggestion that the window system is not obligated to follow.
+      mov   rdi, rbx
+      mov   esi, dword [window + windowT.positionX]
+      mov   edx, dword [window + windowT.positionY]
+      call  glfwSetWindowPos
 
-    ; Setting the callback for the game's tick event.
-    ; This callback will be called in regular periods to indicate that a game tick
-    ; time has passed and thus the game state must be updated. The tick timing is
-    ; directly determined by the game's frame rate.
-    xor   edi, edi
-    xor   edx, edx
-    mov   esi, game.TickCallback
-    call  glutTimerFunc
+      ; Entering the game's infinite loop.
+      ; This subroutine is responsible for keeping the game running, responding
+      ; to the player's commands and rendering the canvas.
+      mov   rdi, rbx
+      call  _.main.GameLoop
 
-    ; Entering the event-processing infinite loop.
-    ; Puts the OpenGL system to wait for events and trigger their handlers.
-    call  glutMainLoop
+    .terminate.success:
+      call  glfwTerminate
+      mov   eax, 0x00
+      jmp   .exit
 
-    leave
-    ret
+    .terminate.fail:
+      call  glfwTerminate
+      mov   eax, -0x01
+
+    .exit:
+      leave
+      ret
+
+  ; The game's infinite loop.
+  ; Here, the game's logic is run in an infinite loop until the game is manually
+  ; or programmatically closed either by the user or by logic. In summary, in every
+  ; iteration, events are polled and processed, the game state is updated and a
+  ; new game frame is drawn on the window canvas.
+  ; @param rdi The window's context pointer.
+  _.main.GameLoop:
+      push  rbp
+      mov   rbp, rsp
+
+      mov   rbx, rdi          ; Preserving the window context pointer.
+
+    .entry:
+      ; Check whether the game should be finalized.
+      ; If so, the game loop is broken, the game state will not be updated anymore
+      ; and no other frame will be rendered.
+      mov   rdi, rbx
+      call  glfwWindowShouldClose
+      cmp   eax, 0x00
+      jne   .exit
+
+      ; Poll the window's event queue and process the callbacks.
+      ; Before any game logic is updated and frame is rendered, we need to poll
+      ; events in order to process input changes beforehand.
+      call  glfwPollEvents
+
+      ; Executes a tick of the game logic.
+      ; We must update the game logic after the processing of events and before
+      ; the next rendering routine. Every loop iteration equals one logic tick.
+      call  game.TickCallback
+
+      ; Draws a frame to the window canvas.
+      ; A new frame can be drawn to the window whenever the game logic is ready.
+      mov   rdi, rbx
+      call  canvas.RenderCallback
+
+      jmp   .entry
+
+    .exit:
+      ; The game finalization callback.
+      ; This subroutine executes any game finalization logic, considering that the
+      ; game window context is already finalized and unaccessible.
+      call  game.FinalizeCallback
+
+      leave
+      ret

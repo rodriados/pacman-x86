@@ -5,7 +5,6 @@
 bits 64
 
 %include "debug.inc"
-%include "opengl.inc"
 
 extern testScene
 
@@ -15,15 +14,12 @@ global game.KeyArrowUpCallback:function
 global game.KeyArrowDownCallback:function
 global game.KeyArrowLeftCallback:function
 global game.KeyArrowRightCallback:function
+global game.FinalizeCallback:function
 
 extern player.KeyArrowUpCallback
 extern player.KeyArrowDownCallback
 extern player.KeyArrowLeftCallback
 extern player.KeyArrowRightCallback
-
-time.fps:                 equ 50          ; The game's ideal frame per second rate.
-time.second:              equ 1000        ; The number of milliseconds in a second.
-time.tick:                equ (time.second / time.fps)
 
 ; Represents the game's logic state values.
 ; This structure is responsible for holding the game's global state, which will
@@ -51,12 +47,8 @@ section .text
     ; control whether the tick should be incremented or not.
     mov   edi, dword [state + gameT.counter]
 
-    call  _.game.ScheduleNextTick
     call  _.game.AdvanceGameState
-
     debug call getFrameRate
-
-    call  glutPostRedisplay
 
     pop   rbp
     ret
@@ -69,7 +61,6 @@ section .text
     mov   rbp, rsp
 
     call  testScene
-    call  glutSwapBuffers
 
     pop   rbp
     ret
@@ -98,6 +89,12 @@ section .text
     call player.KeyArrowRightCallback
     ret
 
+  ; The game logic's finalize callback.
+  ; This callback should only be called when the game's being closed and finalized.
+  ; @param (none) The event has no parameters.
+  game.FinalizeCallback:
+    ret
+
   ; Advances one tick of the game's logic.
   ; A tick is the game's internal time tracker. The game's logic considers that
   ; two consecutive ticks will always have a constant real-time difference in between
@@ -106,18 +103,4 @@ section .text
   ; @param edi The game's internal tick counter.
   _.game.AdvanceGameState:
     inc   dword [state + gameT.counter]
-    ret
-
-  ; Schedules the next game tick event.
-  ; @param edi The current game tick being handled.
-  ; @preserve rdi The game's internal tick counter.
-  _.game.ScheduleNextTick:
-    push  rdi
-
-    mov   edx, edi
-    mov   edi, time.tick
-    mov   esi, game.TickCallback
-    call  glutTimerFunc
-
-    pop   rdi
     ret

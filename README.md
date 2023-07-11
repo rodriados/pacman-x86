@@ -19,7 +19,7 @@ Feel free to use this project however you want to. You might learn some things a
 well.
 
 ## Install
-To compile this project, you must have both libraries `OpenGL` and `GLUT` installed
+To compile this project, you must have both libraries `OpenGL` and `GLFW` installed
 in your system, download the source files and simply run the commands below:
 ```bash
 git clone https://github.com/rodriados/pacman-x86.git
