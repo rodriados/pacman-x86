@@ -134,6 +134,12 @@ section .text
 
       mov   rbx, rdi          ; Preserving the window context pointer.
 
+      ; As GLFW does not throws the reshape event when a new window is created,
+      ; we must manually call the shape subroutine so our viewport is well configured.
+      mov   esi, dword [window + windowT.shapeX]
+      mov   edx, dword [window + windowT.shapeY]
+      call  canvas.ReshapeCallback
+
     .entry:
       ; Check whether the game should be finalized.
       ; If so, the game loop is broken, the game state will not be updated anymore
