@@ -10,9 +10,15 @@ extern glfwInit
 extern glfwTerminate
 extern glfwCreateWindow
 extern glfwMakeContextCurrent
+extern glfwGetMonitors
+extern glfwGetVideoMode
+extern glfwGetWindowPos
+extern glfwGetWindowSize
+extern glfwGetWindowFrameSize
 extern glfwSetWindowPos
 extern glfwSetWindowSize
 extern glfwSetWindowCloseCallback
+extern glfwSetWindowMonitor
 extern glfwSetWindowRefreshCallback
 extern glfwSetWindowSizeCallback
 extern glfwSetKeyCallback
@@ -29,3 +35,4 @@ GLFW_KEY_UP:         	equ 265
 GLFW_KEY_F11:           equ 300
 
 GLFW_PRESS:				equ 1
+GLFW_DONT_CARE:			equ -1
