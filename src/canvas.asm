@@ -125,47 +125,64 @@ section .text
   ; @param xmm1 The window's new length.
   ; @param xmm2 The window's new height.
   _.canvas.SetCanvasOrthographicMatrix:
-      movsd   xmm4, [negativeOne]
-      movsd   xmm5, [positiveOne]
+      push    rbp
+      mov     rbp, rsp
 
-      comisd  xmm0, xmm5
-      jb      .window.isTall
+      movsd   xmm9, xmm0              ; Preserving the window's aspect ratio.
 
-    .window.isWide:
-      movsd   xmm8, xmm0
-      subsd   xmm8, xmm5
-      divsd   xmm8, [positiveTwo]
+      movsd   xmm0, [coords.minX]
+      movsd   xmm1, [coords.maxX]
+      movsd   xmm2, [coords.maxY]
+      movsd   xmm3, [coords.minY]
+      movsd   xmm4, [number.mOne]
+      movsd   xmm5, [number.pOne]
 
-      movsd   xmm0, xmm8
-      mulsd   xmm0, xmm4
+      movsd   xmm6, [coords.scaleX]
+      movsd   xmm7, [coords.scaleY]
 
-      movsd   xmm1, xmm8
-      addsd   xmm1, xmm5
+      movsd   xmm8, xmm6
+      divsd   xmm8, xmm7
+      comisd  xmm9, xmm8
+      jb      .window.taller
 
-      pxor    xmm2, xmm2
-      movsd   xmm3, xmm5
+    ; The game window is wider than the aspect ratio used internally by the game.
+    ; Therefore, we must draw vertical stripes on the right and left of our canvas
+    ; so that the game is horizontally centered on the window.
+    .window.wider:
+      movsd   xmm8, xmm9
+      mulsd   xmm8, xmm7
+      subsd   xmm8, xmm1
+      divsd   xmm8, [number.pTwo]
+
+      subsd   xmm0, xmm8
+      addsd   xmm1, xmm8
       jmp     .ready
 
-    .window.isTall:
-      movsd   xmm8, xmm2
-      divsd   xmm8, xmm1
-      subsd   xmm8, xmm5
-      divsd   xmm8, [positiveTwo]
+    ; The game window is taller than the aspect ratio used internally by the game.
+    ; In this scenario, horizontal stripes must be inserted above and below of the
+    ; the canvas, so the game is vertically centered on the window.
+    .window.taller:
+      movsd   xmm8, xmm6
+      divsd   xmm8, xmm9
+      subsd   xmm8, xmm7
+      divsd   xmm8, [number.pTwo]
 
-      pxor    xmm0, xmm0
-      movsd   xmm1, xmm5
-
-      movsd   xmm2, xmm8
-      mulsd   xmm2, xmm4
-
-      movsd   xmm3, xmm8
-      addsd   xmm3, xmm5
+      subsd   xmm3, xmm8
+      addsd   xmm2, xmm8
 
     .ready:
       call  glOrtho
+      leave
       ret
 
 section .rodata
-  negativeOne:    dq float64(-1.0)
-  positiveOne:    dq float64(+1.0)
-  positiveTwo:    dq float64(+2.0)
+  number.mOne:    dq float64(-1.0)
+  number.pOne:    dq float64(+1.0)
+  number.pTwo:    dq float64(+2.0)
+
+  coords.minX:    dq float64(+00.0)
+  coords.maxX:    dq float64(+28.0)
+  coords.minY:    dq float64(-03.0)
+  coords.maxY:    dq float64(+33.0)
+  coords.scaleX:  dq float64(+28.0)
+  coords.scaleY:  dq float64(+36.0)
