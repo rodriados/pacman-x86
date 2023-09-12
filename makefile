@@ -6,8 +6,11 @@ NAME = pacman-x86
 
 SRCDIR = src
 OBJDIR = obj
+RSCDIR = resources
+SPRITEDIR = $(RSCDIR)/assets/sprites
 
 NASM ?= nasm
+PYT3 ?= python3
 LINKR ?= gcc
 
 # Target architecture for x86 compilation. This indicates the architecture the code
@@ -24,19 +27,25 @@ LINKFLAGS = $(LINKRFLAGS) $(ENV) $(FLAGS) -no-pie
 
 # Lists all files to be compiled and separates them according to their corresponding
 # compilers. Changes in any of these files in will trigger conditional recompilation.
-NASMFILES := $(shell find $(SRCDIR) -name '*.asm')
+NASMFILES   := $(shell find $(SRCDIR) -name '*.asm')
+SPRITEFILES := $(shell find $(SPRITEDIR) -name '*.png')
+
+# Defining the asset converter scripts. These scripts are run during build time
+# to convert the game's assets into files readable by the game.
+SCRCONVERTSPRITE = $(RSCDIR)/converters/convert-sprite.py
 
 OBJFILES  = $(NASMFILES:$(SRCDIR)/%.asm=$(OBJDIR)/%.o)
+BINFILES  = $(SPRITEFILES:$(RSCDIR)/%.png=$(OBJDIR)/%.sprite)
 
-OBJHIERARCHY = $(sort $(dir $(OBJFILES)))
+OBJHIERARCHY = $(sort $(dir $(OBJFILES) $(BINFILES)))
 
-all: debug
+all: always debug
 
-install: $(OBJHIERARCHY)
+always: $(OBJHIERARCHY)
 
-debug: install
+debug: always
 debug: override ENV = -g -DDEBUG
-debug: $(NAME)
+debug: $(BINFILES) $(NAME)
 
 clean:
 	@rm -rf $(OBJDIR)
@@ -63,6 +72,9 @@ $(OBJDIR)/debug.o: $(SRCDIR)/debug.c
 $(NAME): $(OBJFILES) $(OBJDIR)/debug.o
 	$(LINKR) $^ $(LINKFLAGS) -o $@
 
-.PHONY: all install debug clean
+$(OBJDIR)/%.sprite: $(RSCDIR)/%.png
+	$(PYT3) $(SCRCONVERTSPRITE) $< $@
+
+.PHONY: all always debug clean
 
 .PRECIOUS: $(OBJDIR)/%.o
