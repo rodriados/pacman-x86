@@ -34,35 +34,38 @@ extern double getFrameRate()
     return (double) 1000.0f / elapsedTime;
 }
 
-double x1 = .7, y1 = .6;
+double x1 = 0, y1 = 0;
 double deltaX = 0.0, deltaY = 0.0;
 
 extern void logArrowUpPress()
 {
     deltaX = 0;
-    deltaY = +.01;
+    deltaY = -.1;
 }
 
 extern void logArrowDownPress()
 {
     deltaX = 0;
-    deltaY = -.01;
+    deltaY = +.1;
 }
 
 extern void logArrowLeftPress()
 {
-    deltaX = -.01;
+    deltaX = -.1;
     deltaY = 0;
 }
 
 extern void logArrowRightPress()
 {
-    deltaX = +.01;
+    deltaX = +.1;
     deltaY = 0;
 }
 
-#include <GL/glut.h>
-
+extern void logSpacePress()
+{
+    deltaX = 0;
+    deltaY = 0;
+}
 
 float angle = 0.0;
 bool loaded = false;

@@ -28,11 +28,12 @@ extern glfwPollEvents
 
 ; Declaring GLFW macro values.
 ; This is the list of all GLFW macro values needed throughout the game's codebase.
-GLFW_KEY_RIGHT:      	equ 262
-GLFW_KEY_LEFT:       	equ 263
-GLFW_KEY_DOWN:       	equ 264
-GLFW_KEY_UP:         	equ 265
+GLFW_KEY_SPACE:         equ  32
+GLFW_KEY_RIGHT:         equ 262
+GLFW_KEY_LEFT:          equ 263
+GLFW_KEY_DOWN:          equ 264
+GLFW_KEY_UP:            equ 265
 GLFW_KEY_F11:           equ 300
 
-GLFW_PRESS:				equ 1
-GLFW_DONT_CARE:			equ -1
+GLFW_PRESS:             equ   1
+GLFW_DONT_CARE:         equ  -1

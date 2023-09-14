@@ -14,12 +14,15 @@ global game.KeyArrowUpCallback:function
 global game.KeyArrowDownCallback:function
 global game.KeyArrowLeftCallback:function
 global game.KeyArrowRightCallback:function
+global game.KeySpaceCallback:function
+global game.InitializeCallback:function
 global game.FinalizeCallback:function
 
 extern player.KeyArrowUpCallback
 extern player.KeyArrowDownCallback
 extern player.KeyArrowLeftCallback
 extern player.KeyArrowRightCallback
+extern player.KeySpaceCallback
 
 ; Represents the game's logic state values.
 ; This structure is responsible for holding the game's global state, which will
@@ -87,6 +90,12 @@ section .text
   ; @param (none) The event has no parameters.
   game.KeyArrowRightCallback:
     call player.KeyArrowRightCallback
+    ret
+
+  ; The game's callback for a space key press event.
+  ; @param (none) The event has no parameters.
+  game.KeySpaceCallback:
+    call player.KeySpaceCallback
     ret
 
   ; The game logic's finalize callback.

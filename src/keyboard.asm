@@ -10,21 +10,10 @@ extern game.KeyArrowUpCallback
 extern game.KeyArrowDownCallback
 extern game.KeyArrowLeftCallback
 extern game.KeyArrowRightCallback
+extern game.KeySpaceCallback
 extern fullscreen.ToggleCallback
 
 global keyboard.KeyCallback:function
-
-; Maps a key value to a callback and executes it if is the current event.
-; @param %1 The identifier of key to be mapped to a callback.
-; @param %2 The callback to be executed if the current event matches.
-; @param edi The event to be executed.
-%macro mapCallback 2
-    cmp   esi, %{1}
-    jne   %%fallthrough
-    call  %{2}
-    jmp   .quit
-  %%fallthrough:
-%endmacro
 
 section .text
   ; Handler for the special key pressing event.
@@ -37,10 +26,23 @@ section .text
       cmp   ecx, GLFW_PRESS
       jne   .quit
 
+      ; Maps a key value to a callback and executes it if is the current event.
+      ; @param %1 The identifier of key to be mapped to a callback.
+      ; @param %2 The callback to be executed if the current event matches.
+      ; @param edi The event to be executed.
+      %macro mapCallback 2
+          cmp   esi, %{1}
+          jne   %%fallthrough
+          call  %{2}
+          jmp   .quit
+        %%fallthrough:
+      %endmacro
+
       mapCallback GLFW_KEY_UP,    game.KeyArrowUpCallback
       mapCallback GLFW_KEY_DOWN,  game.KeyArrowDownCallback
       mapCallback GLFW_KEY_LEFT,  game.KeyArrowLeftCallback
       mapCallback GLFW_KEY_RIGHT, game.KeyArrowRightCallback
+      mapCallback GLFW_KEY_SPACE, game.KeySpaceCallback
       mapCallback GLFW_KEY_F11,   fullscreen.ToggleCallback
 
     .quit:
