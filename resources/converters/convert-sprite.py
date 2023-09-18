@@ -19,7 +19,7 @@ def convert_sprite(src: str, dest: str):
     with Image.open(src, 'r') as fsource:
         with open(dest, 'wb') as fdestination:
             rgba = fsource.convert('RGBA')
-            shape = struct.pack('>LL', rgba.width, rgba.height)
+            shape = struct.pack('<LL', rgba.width, rgba.height)
 
             fdestination.write(shape)
             fdestination.write(rgba.tobytes())

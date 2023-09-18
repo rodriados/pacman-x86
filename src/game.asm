@@ -23,6 +23,7 @@ extern player.KeyArrowDownCallback
 extern player.KeyArrowLeftCallback
 extern player.KeyArrowRightCallback
 extern player.KeySpaceCallback
+extern sprite.LoadGameSprites
 
 ; Represents the game's logic state values.
 ; This structure is responsible for holding the game's global state, which will
@@ -37,6 +38,17 @@ section .data
     iend
 
 section .text
+  ; Initializes the game state, loads assets and sets game logic to initial condition.
+  ; @param (none) The game's state, assets and logic are retrieved from memory.
+  game.InitializeCallback:
+    push  rbp
+    mov   rbp, rsp
+
+    call  sprite.LoadGameSprites
+
+    leave
+    ret
+
   ; The game's tick event handler.
   ; Updates the game state whenever a time tick has passed.
   ; @param (none) The game's internal tick counter is retrieved from memory.

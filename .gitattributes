@@ -1,6 +1,7 @@
-*.c     text=auto
-*.asm   text=auto
-*.inc   text=auto linguist-language=Assembly
-*.bin   binary
-*.png   binary
-*.bmp   binary
+*.c             text=auto
+*.asm           text=auto
+*.inc           text=auto linguist-language=Assembly
+*.bin           binary
+*.png           binary
+*.bmp           binary
+*.piskel        binary

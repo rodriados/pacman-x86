@@ -16,6 +16,7 @@ extern canvas.ReshapeCallback
 extern canvas.SetBackgroundColor
 extern keyboard.KeyCallback
 extern game.TickCallback
+extern game.InitializeCallback
 extern game.FinalizeCallback
 
 global window:data
@@ -139,6 +140,10 @@ section .text
       mov   esi, dword [window + windowT.shapeX]
       mov   edx, dword [window + windowT.shapeY]
       call  canvas.ReshapeCallback
+
+      ; Initializes the game state, loads assets, sets variables and logic to the
+      ; state expected by the game when starting.
+      call  game.InitializeCallback
 
     .entry:
       ; Check whether the game should be finalized.
