@@ -41,3 +41,8 @@ GL_TEXTURE_WRAP_S:          equ 0x2802
 GL_TEXTURE_WRAP_T:          equ 0x2803
 GL_TEXTURE_MAG_FILTER:      equ 0x2800
 GL_TEXTURE_MIN_FILTER:      equ 0x2801
+
+GL_MODELVIEW:               equ 0x1700
+GL_BLEND:                   equ 0x0be2
+GL_SRC_ALPHA:               equ 0x0302
+GL_ONE_MINUS_SRC_ALPHA:     equ 0x0303

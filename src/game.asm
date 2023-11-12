@@ -6,8 +6,6 @@ bits 64
 
 %include "debug.inc"
 
-extern testScene
-
 global game.TickCallback:function
 global game.DrawFrameCallback:function
 global game.KeyArrowUpCallback:function
@@ -64,18 +62,6 @@ section .text
 
     call  _.game.AdvanceGameState
     debug call getFrameRate
-
-    pop   rbp
-    ret
-
-  ; The frame drawing callback.
-  ; Draws a new game frame to be displayed at the user's window.
-  ; @param (none) The current game state is retrieved from memory.
-  game.DrawFrameCallback:
-    push  rbp
-    mov   rbp, rsp
-
-    call  testScene
 
     pop   rbp
     ret

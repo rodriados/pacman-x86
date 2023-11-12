@@ -12,14 +12,13 @@ bits 64
 %include "thirdparty/glfw.inc"
 %include "thirdparty/opengl.inc"
 
-extern game.DrawFrameCallback
-extern window
-
 global canvas.RenderCallback:function
 global canvas.ReshapeCallback:function
-
 global canvas.GetAspectRatio:function
 global canvas.SetBackgroundColor:function
+
+extern window
+extern render.DrawFrameCallback
 
 section .text
   ; The game's window re-paint event handler.
@@ -41,7 +40,7 @@ section .text
     ; Calls the game logic module to draw a frame when it is time to perform a window
     ; repaint. This delegation achieves centralizing all logic related to the game's
     ; controls, progress and drawing in a single module.
-    call  game.DrawFrameCallback
+    call  render.DrawFrameCallback
 
     ; Shows the newly drawn frame in the window canvas.
     ; Once a new frame has been thoroughly drawn in the back buffer, we must bring

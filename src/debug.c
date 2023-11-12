@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 /**
  * Retrieves the current time since UNIX epoch.
@@ -67,198 +68,67 @@ extern void logSpacePress()
     deltaY = 0;
 }
 
-float angle = 0.0;
-bool loaded = false;
 GLuint textureID = 0;
 
+// asm:   bswap <reg>
 unsigned uint_big_endianness(unsigned char bytes[4])
 {
     return bytes[3] | (bytes[2] << 8) | (bytes[1] << 16) | (bytes[0] << 24);
 }
 
-// GLuint loadTexture(const char *filename)
-// {
-//     FILE *file = fopen(filename, "rb");
+extern GLuint _spriteBoard;
 
-//     unsigned char bytes[4];
-//     unsigned int height, width;
-
-//     fread(bytes, 4, sizeof(unsigned char), file);
-//     height = uint_big_endianness(bytes);
-
-//     fread(bytes, 4, sizeof(unsigned char), file);
-//     width = uint_big_endianness(bytes);
-
-//     unsigned int imageSize = height * width * 4;
-
-//     unsigned char *image = (unsigned char*) malloc(imageSize * sizeof(unsigned char));
-
-//     fread(image, imageSize, sizeof(unsigned char), file);
-
-//     fclose(file);
-
-//     GLuint texture;
-//     glGenTextures(1, &texture);
-//     glBindTexture(GL_TEXTURE_2D, texture);
-//     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, image);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-//     loaded = true;
-
-//     return texture;
-
-//     // const unsigned char data[] = {
-//     //   255, 0,   0,   0, 255,   0,
-//     //     0, 0, 255, 255, 255, 255
-//     // };
-
-//     // const GLsizei GLwidth = 2;
-//     // const GLsizei GLheight = 2;
-
-//     // glGenTextures(1, &textureID);
-//     // glBindTexture(GL_TEXTURE_2D, textureID);
-//     // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//     // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLwidth, GLheight, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
-//     // glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-//     // glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-//     // glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-//     // glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-
-//     // loaded = true;
-
-//     // return textureID;
-// }
-
-extern void testScene()
+extern void drawBoard()
 {
-    // if (!loaded) {
-    //     textureID = loadTexture("resources/pacman.bin");
-    // }
+    textureID = _spriteBoard;
 
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
+    glBegin(GL_QUADS);
+    for (unsigned int x =0;x<28;++x)
+        for (unsigned int y =0;y<31;++y)
+        {
+            if ((x+y)&0x00000001) //modulo 2
+                glColor3f(0.0f,.3f,0.0f);
+            else
+                glColor3f(0.0f,0.0f,.3f);
 
-    // glOrtho(-2, 2, -2, 2, 2, -2);
+            glVertex2f(    x*1.f,    y*1.f);
+            glVertex2f((x+1)*1.f,    y*1.f);
+            glVertex2f((x+1)*1.f,(y+1)*1.f);
+            glVertex2f(    x*1.f,(y+1)*1.f);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    double halfside = .1 / 2.0;
-
-    glColor3d(0,0,1.f);
-    glBegin(GL_POLYGON);
-
-    glVertex2d(x1 + halfside, y1 + halfside);
-    glVertex2d(x1 + halfside, y1 - halfside);
-    glVertex2d(x1 - halfside, y1 - halfside);
-    glVertex2d(x1 - halfside, y1 + halfside);
-
-    x1 += deltaX * 5;
-    y1 += deltaY * 5;
-
+        }
     glEnd();
 
-    // glEnable(GL_TEXTURE_2D);
-    // glBindTexture(GL_TEXTURE_2D, textureID);
-    // glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glEnable(GL_TEXTURE_2D);
+    glColor4d(1.f,1.f,1.f,1.f);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBegin(GL_POLYGON);
 
-    // glBegin(GL_QUADS);
-    //     glTexCoord2f( 0, 0 );
-    //     glVertex2i( -1, -1 );
-    //     glTexCoord2f( 1, 0 );
-    //     glVertex2i(  1, -1 );
-    //     glTexCoord2f( 1, 1 );
-    //     glVertex2i(  1,  1 );
-    //     glTexCoord2f( 0, 1 );
-    //     glVertex2i( -1,  1 );
-    // glEnd();
+      glTexCoord2f(0.f,  0.f);
+      glVertex2d(  0.f,  0.f);
 
-   // glMatrixMode(GL_MODELVIEW);
-   // glLoadIdentity();
- 
-   // glPushMatrix();
-   // glTranslatef(-0.5f, 0.4f, 0.0f);
-   // glRotatef(angle, 0.0f, 0.0f, 1.0f);
-   // glBegin(GL_QUADS);
-   //    glColor3f(1.0f, 0.0f, 0.0f);
-   //    glVertex2f(-0.3f, -0.3f);
-   //    glVertex2f( 0.3f, -0.3f);
-   //    glVertex2f( 0.3f,  0.3f);
-   //    glVertex2f(-0.3f,  0.3f);
-   // glEnd();
-   // glPopMatrix();
- 
-   // glPushMatrix();
-   // glTranslatef(-0.4f, -0.3f, 0.0f);
-   // glRotatef(angle, 0.0f, 0.0f, 1.0f);
-   // glBegin(GL_QUADS);
-   //    glColor3f(0.0f, 1.0f, 0.0f);
-   //    glVertex2f(-0.3f, -0.3f);
-   //    glVertex2f( 0.3f, -0.3f);
-   //    glVertex2f( 0.3f,  0.3f);
-   //    glVertex2f(-0.3f,  0.3f);
-   // glEnd();
-   // glPopMatrix();
- 
-   // glPushMatrix();
-   // glTranslatef(-0.7f, -0.5f, 0.0f);
-   // glRotatef(angle, 0.0f, 0.0f, 1.0f);
-   // glBegin(GL_QUADS);
-   //    glColor3f(0.2f, 0.2f, 0.2f);
-   //    glVertex2f(-0.2f, -0.2f);
-   //    glColor3f(1.0f, 1.0f, 1.0f);
-   //    glVertex2f( 0.2f, -0.2f);
-   //    glColor3f(0.2f, 0.2f, 0.2f);
-   //    glVertex2f( 0.2f,  0.2f);
-   //    glColor3f(1.0f, 1.0f, 1.0f);
-   //    glVertex2f(-0.2f,  0.2f);
-   // glEnd();
-   // glPopMatrix();
- 
-   // glPushMatrix();
-   // glTranslatef(0.4f, -0.3f, 0.0f);
-   // glRotatef(angle, 0.0f, 0.0f, 1.0f);
-   // glBegin(GL_TRIANGLES);
-   //    glColor3f(0.0f, 0.0f, 1.0f);
-   //    glVertex2f(-0.3f, -0.2f);
-   //    glVertex2f( 0.3f, -0.2f);
-   //    glVertex2f( 0.0f,  0.3f);
-   // glEnd();
-   // glPopMatrix();
- 
-   // glPushMatrix();
-   // glTranslatef(0.6f, -0.6f, 0.0f);
-   // glRotatef(180.0f + angle, 0.0f, 0.0f, 1.0f);
-   // glBegin(GL_TRIANGLES);
-   //    glColor3f(1.0f, 0.0f, 0.0f);
-   //    glVertex2f(-0.3f, -0.2f);
-   //    glColor3f(0.0f, 1.0f, 0.0f);
-   //    glVertex2f( 0.3f, -0.2f);
-   //    glColor3f(0.0f, 0.0f, 1.0f);
-   //    glVertex2f( 0.0f,  0.3f);
-   // glEnd();
-   // glPopMatrix();
- 
-   // glPushMatrix();
-   // glTranslatef(0.5f, 0.4f, 0.0f);
-   // glRotatef(angle, 0.0f, 0.0f, 1.0f);
-   // glBegin(GL_POLYGON);
-   //    glColor3f(1.0f, 1.0f, 0.0f);
-   //    glVertex2f(-0.1f, -0.2f);
-   //    glVertex2f( 0.1f, -0.2f);
-   //    glVertex2f( 0.2f,  0.0f);
-   //    glVertex2f( 0.1f,  0.2f);
-   //    glVertex2f(-0.1f,  0.2f);
-   //    glVertex2f(-0.2f,  0.0f);
-   // glEnd();
-   // glPopMatrix();
- 
-   // angle += 0.2f;
+      glTexCoord2f(1.f,  0.f);
+      glVertex2d( 28.f,  0.f);
+
+      glTexCoord2f(1.f,  1.f);
+      glVertex2d( 28.f, 31.f);
+
+      glTexCoord2f(0.f,  1.f);
+      glVertex2d(  0.f, 31.f);
+
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+
+    glColor4d(1.f,0.f,0.f,1.f);
+    glBegin(GL_POLYGON);
+
+      glVertex2d(x1 + 0., y1 + 0.);
+      glVertex2d(x1 + 1., y1 + 0.);
+      glVertex2d(x1 + 1., y1 + 1.);
+      glVertex2d(x1 + 0., y1 + 1.);
+
+      x1 += deltaX * 2;
+      y1 += deltaY * 2;
+
+    glEnd();
 }
