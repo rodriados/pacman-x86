@@ -57,6 +57,11 @@ section .text
       cmp   eax, 0x00
       je    .exit
 
+      ; Inform the player whether the game has been compiled in debug mode.
+      ; The debug mode may affect the game's performance as some extra validations
+      ; and even visual elements may be added to the game.
+      debug call showDebugMessage
+
       ; Creation of a window.
       ; A window must be created as a canvas for the game. Also, the OpenGL context
       ; is attached to the newly window, which shall be unique. The window's size

@@ -6,6 +6,7 @@ bits 64
 
 %use fp
 
+%include "debug.inc"
 %include "thirdparty/opengl.inc"
 
 extern drawBoard
@@ -31,6 +32,7 @@ section .text
     mov   esi, GL_ONE_MINUS_SRC_ALPHA
     call  glBlendFunc
 
+    debug call drawCheckboard
     call  drawBoard
 
     movss xmm0, [number.pOne]

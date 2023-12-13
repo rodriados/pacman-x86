@@ -8,8 +8,9 @@
 
   ; Declaring functions available on the C-implemented debug module.
   ; These functions can only be called on debug mode.
-  extern getTime
   extern getFrameRate
+  extern drawCheckboard
+  extern showDebugMessage
 %else
   debug.active:       equ 0
 %endif
