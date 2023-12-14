@@ -22,12 +22,14 @@ extern glTexImage2D
 extern glTexParameteri
 extern glBlendFunc
 extern glColor4d
+extern glTexCoord2d
 extern glVertex2d
-extern glTexCoord2f
 
 ; Declaring OpenGL macro values.
 ; This is the list of all OpenGL macro values needed throughout the game's codebase.
 GL_QUADS:                   equ 0x0007
+GL_POLYGON:                 equ 0x0009
+
 GL_PROJECTION:              equ 0x1701
 GL_COLOR_BUFFER_BIT:        equ 0x4000
 GL_UNPACK_ALIGNMENT:        equ 0x0cf5

@@ -131,40 +131,8 @@ extern void logSpacePress()
     deltaY = 0;
 }
 
-GLuint textureID = 0;
-
-// asm:   bswap <reg>
-unsigned uint_big_endianness(unsigned char bytes[4])
+extern void drawDummyPlayer()
 {
-    return bytes[3] | (bytes[2] << 8) | (bytes[1] << 16) | (bytes[0] << 24);
-}
-
-extern GLuint _spriteBoard;
-
-extern void drawBoard()
-{
-    textureID = _spriteBoard;
-
-    glEnable(GL_TEXTURE_2D);
-    glColor4d(1.f,1.f,1.f,1.f);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glBegin(GL_POLYGON);
-
-      glTexCoord2f(0.f,  0.f);
-      glVertex2d(  0.f,  0.f);
-
-      glTexCoord2f(1.f,  0.f);
-      glVertex2d( 28.f,  0.f);
-
-      glTexCoord2f(1.f,  1.f);
-      glVertex2d( 28.f, 31.f);
-
-      glTexCoord2f(0.f,  1.f);
-      glVertex2d(  0.f, 31.f);
-
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
-
     glColor4d(1.f,0.f,0.f,1.f);
     glBegin(GL_POLYGON);
 

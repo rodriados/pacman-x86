@@ -11,13 +11,11 @@ bits 64
 extern fopen, fread, fclose
 extern malloc, free
 
-;global sprite.board:data
-global _spriteBoard:data
+global sprite.board:data
 global sprite.LoadGameSprites:function
 
 section .data
-  ;sprite.board:             dd 0
-  _spriteBoard:  dd 0
+  sprite.board:             dd 0
 
 section .rodata
   filename.board:           db "obj/assets/sprites/board.sprite", 0
@@ -38,7 +36,7 @@ section .text
       call  _.sprite.LoadSpriteToTexture
     %endmacro
 
-    mapSpriteToTexture filename.board, _spriteBoard;sprite.board
+    mapSpriteToTexture filename.board, sprite.board
 
     leave
     ret
