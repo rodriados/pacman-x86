@@ -21,6 +21,7 @@ extern glfwSetWindowCloseCallback
 extern glfwSetWindowMonitor
 extern glfwSetWindowRefreshCallback
 extern glfwSetWindowSizeCallback
+extern glfwSetWindowPosCallback
 extern glfwSetKeyCallback
 extern glfwWindowShouldClose
 extern glfwSwapBuffers

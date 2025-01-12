@@ -13,6 +13,7 @@ bits 64
 
 extern canvas.RenderCallback
 extern canvas.ReshapeCallback
+extern canvas.MoveCallback
 extern canvas.SetBackgroundColor
 extern keyboard.KeyCallback
 extern game.TickCallback
@@ -95,6 +96,12 @@ section .text
       mov   rdi, qword [window + windowT.ref]
       mov   esi, canvas.ReshapeCallback
       call  glfwSetWindowSizeCallback
+
+      ; Setting the callback for updating the window position when moved.
+      ; This callback will be called whenever the window is moved.
+      mov   rdi, qword [window + windowT.ref]
+      mov   esi, canvas.MoveCallback
+      call  glfwSetWindowPosCallback
 
       ; Setting the callback for the keyboard's input event.
       ; This callback will be called whenever a there's a keyboard input event.

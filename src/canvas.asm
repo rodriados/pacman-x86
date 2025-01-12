@@ -14,6 +14,7 @@ bits 64
 
 global canvas.RenderCallback:function
 global canvas.ReshapeCallback:function
+global canvas.MoveCallback:function
 global canvas.GetAspectRatio:function
 global canvas.SetBackgroundColor:function
 
@@ -89,6 +90,16 @@ section .text
     call  _.canvas.SetCanvasOrthographicMatrix
 
     leave
+    ret
+
+  ; The game's window move event handler.
+  ; Adjusts the window's properties whenever it is moved.
+  ; @param rdi The window's context pointer.
+  ; @param esi The window's new width.
+  ; @param edx The window's new height.
+  canvas.MoveCallback:
+    mov   dword [window + windowT.positionX], esi
+    mov   dword [window + windowT.positionY], edx
     ret
 
   ; Informs the window's current aspect ratio.
