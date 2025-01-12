@@ -25,6 +25,7 @@ global main:function
 section .data
   align 8
   window: istruc windowT
+      at windowT.ref,         dq 0
       at windowT.shape,       dd 640, 480
       at windowT.position,    dd 100, 100
       at windowT.aspect,      dq 0
@@ -73,15 +74,15 @@ section .text
       xor   ecx, ecx
       xor   r8d, r8d
       call  glfwCreateWindow
+      mov   qword [window + windowT.ref], rax
 
-      mov   rbx, rax          ; Preserving the window context pointer.
-      cmp   rbx, 0x00
+      cmp   rax, 0x00
       je    .terminate.fail
 
       ; Set the created window as the current context.
       ; As no other windows should be created during the execution of the game,
       ; we can permanently set the one recently created as the current context.
-      mov   rdi, rbx
+      mov   rdi, qword [window + windowT.ref]
       call  glfwMakeContextCurrent
 
       ; Setting the game's window background color.
@@ -91,20 +92,20 @@ section .text
 
       ; Setting the callback for the window resize event.
       ; This callback will be called whenever the window is resized.
-      mov   rdi, rbx
+      mov   rdi, qword [window + windowT.ref]
       mov   esi, canvas.ReshapeCallback
       call  glfwSetWindowSizeCallback
 
       ; Setting the callback for the keyboard's input event.
       ; This callback will be called whenever a there's a keyboard input event.
-      mov   rdi, rbx
+      mov   rdi, qword [window + windowT.ref]
       mov   esi, keyboard.KeyCallback
       call  glfwSetKeyCallback
 
       ; Setting the window's position.
       ; Similarly to when setting the window's size, its initial position is just
       ; a suggestion that the window system is not obligated to follow.
-      mov   rdi, rbx
+      mov   rdi, qword [window + windowT.ref]
       mov   esi, dword [window + windowT.positionX]
       mov   edx, dword [window + windowT.positionY]
       call  glfwSetWindowPos
@@ -112,7 +113,6 @@ section .text
       ; Entering the game's infinite loop.
       ; This subroutine is responsible for keeping the game running, responding
       ; to the player's commands and rendering the canvas.
-      mov   rdi, rbx
       call  _.main.GameLoop
 
     .terminate.success:
@@ -133,12 +133,10 @@ section .text
   ; or programmatically closed either by the user or by logic. In summary, in every
   ; iteration, events are polled and processed, the game state is updated and a
   ; new game frame is drawn on the window canvas.
-  ; @param rdi The window's context pointer.
+  ; @param (none) The window's context is retrieved from memory.
   _.main.GameLoop:
       push  rbp
       mov   rbp, rsp
-
-      mov   rbx, rdi          ; Preserving the window context pointer.
 
       ; As GLFW does not throws the reshape event when a new window is created,
       ; we must manually call the shape subroutine so our viewport is well configured.
@@ -154,7 +152,7 @@ section .text
       ; Check whether the game should be finalized.
       ; If so, the game loop is broken, the game state will not be updated anymore
       ; and no other frame will be rendered.
-      mov   rdi, rbx
+      mov   rdi, qword [window + windowT.ref]
       call  glfwWindowShouldClose
       cmp   eax, 0x00
       jne   .exit
@@ -171,7 +169,7 @@ section .text
 
       ; Draws a frame to the window canvas.
       ; A new frame can be drawn to the window whenever the game logic is ready.
-      mov   rdi, rbx
+      mov   rdi, qword [window + windowT.ref]
       call  canvas.RenderCallback
 
       jmp   .entry

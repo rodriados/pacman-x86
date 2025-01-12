@@ -7,6 +7,7 @@
 ; This structure declares window properties that are globally relevant and should
 ; be kept up-to-date with the game's window current properties.
 struc windowT
+  .ref:         resq 1      ; The window's reference.
   .shape:       resd 2      ; The window's width and height.
   .position:    resd 2      ; The window's position on screen.
   .aspect:      resq 1      ; The window's aspect ratio.
