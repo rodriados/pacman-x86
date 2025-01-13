@@ -11,6 +11,7 @@ extern glfwTerminate
 extern glfwCreateWindow
 extern glfwMakeContextCurrent
 extern glfwGetMonitors
+extern glfwGetMonitorPos
 extern glfwGetVideoMode
 extern glfwGetWindowPos
 extern glfwGetWindowSize
