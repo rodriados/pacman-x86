@@ -21,6 +21,8 @@ extern player.KeyArrowDownCallback
 extern player.KeyArrowLeftCallback
 extern player.KeyArrowRightCallback
 extern player.KeySpaceCallback
+extern player.ResetState
+extern player.UpdatePosition
 extern sprite.LoadGameSprites
 
 ; Represents the game's logic state values.
@@ -43,6 +45,7 @@ section .text
     mov   rbp, rsp
 
     call  sprite.LoadGameSprites
+    call  player.ResetState
 
     leave
     ret
@@ -110,4 +113,5 @@ section .text
   ; @param edi The game's internal tick counter.
   _.game.AdvanceGameState:
     inc   dword [state + gameT.counter]
+    call  player.UpdatePosition
     ret
