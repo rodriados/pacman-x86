@@ -152,8 +152,6 @@ section .text
       je    .monitors.one
 
     .monitors.many:
-      ; TODO: Implement logic for detecting the screen in which the window is currently
-      ;       located in, and set fullscreen to this specific screen.
       mov   rdi, qword [.screen.list]
       mov   esi, dword [.screen.count]
       call  _.fullscreen.SelectMonitor

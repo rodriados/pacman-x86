@@ -18,9 +18,9 @@
  */
 extern void showDebugMessage()
 {
-    puts("         ==== Pacman-x86 Debug Mode ====        ");
-    puts(" Debug mode is on, performance may be affected. ");
-    puts("Debugging information may be printed to console.");
+    puts("           ==== Pacman-x86 Debug Mode ====          ");
+    puts("   Debug mode is on, performance may be affected.   ");
+    puts("Debugging information may be printed to the console.");
 }
 
 /**

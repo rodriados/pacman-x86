@@ -57,54 +57,73 @@ section .text
     push  rbp
     mov   rbp, rsp
 
+    push  r12
+    push  r13
+    push  r14
+    push  r15
+
     mov   edi, GL_TEXTURE_2D
     call  glEnable
 
-    movsd xmm5, [number.zero]
-    movsd xmm6, [number.pOne]
-    movsd xmm7, [number.p28]
-    movsd xmm8, [number.p31]
+    mov   r12, qword [number.zero]
+    mov   r13, qword [number.pOne]
+    mov   r14, qword [number.p28]
+    mov   r15, qword [number.p31]
 
-    movsd xmm0, xmm6
-    movsd xmm1, xmm6
-    movsd xmm2, xmm6
-    movsd xmm3, xmm6
+    movq  xmm0, r13
+    movq  xmm1, r13
+    movq  xmm2, r13
+    movq  xmm3, r13
     call  glColor4d
 
     mov   edi, GL_TEXTURE_2D
-    mov   esi, [sprite.board]
+    mov   esi, dword [sprite.board]
     call  glBindTexture
 
     mov   edi, GL_POLYGON
     call  glBegin
 
-    movsd xmm0, xmm5
-    movsd xmm1, xmm5
+    movq  xmm0, r12
+    movq  xmm1, r12
     call  glTexCoord2d
+
+    movq  xmm0, r12
+    movq  xmm1, r12
     call  glVertex2d
 
-    movsd xmm0, xmm6
+    movq  xmm0, r13
+    movq  xmm1, r12
     call  glTexCoord2d
-    movsd xmm0, xmm7
+
+    movq  xmm0, r14
+    movq  xmm1, r12
     call  glVertex2d
 
-    movsd xmm0, xmm6
-    movsd xmm1, xmm6
+    movq  xmm0, r13
+    movq  xmm1, r13
     call  glTexCoord2d
-    movsd xmm0, xmm7
-    movsd xmm1, xmm8
+
+    movq  xmm0, r14
+    movq  xmm1, r15
     call  glVertex2d
 
-    movsd xmm0, xmm5
-    movsd xmm1, xmm6
-    call glTexCoord2d
-    movsd xmm1, xmm8
+    movq  xmm0, r12
+    movq  xmm1, r13
+    call  glTexCoord2d
+
+    movq  xmm0, r12
+    movq  xmm1, r15
     call  glVertex2d
 
     call  glEnd
 
     mov   edi, GL_TEXTURE_2D
     call  glDisable
+
+    pop   r15
+    pop   r14
+    pop   r13
+    pop   r12
 
     pop   rbp
     ret
