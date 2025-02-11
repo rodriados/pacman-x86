@@ -16,8 +16,8 @@ extern canvas.ReshapeCallback
 extern canvas.MoveCallback
 extern canvas.SetBackgroundColor
 extern keyboard.KeyCallback
-extern game.TickCallback
 extern game.InitializeCallback
+extern game.UpdateCallback
 extern game.FinalizeCallback
 
 global window:data
@@ -85,6 +85,11 @@ section .text
       ; we can permanently set the one recently created as the current context.
       mov   rdi, qword [window + windowT.ref]
       call  glfwMakeContextCurrent
+
+      ; Enables vertical-synchronization.
+      ; Our window should only render as fast as the screen can refresh.
+      mov   edi, 0x01
+      call  glfwSwapInterval
 
       ; Setting the game's window background color.
       ; Configures the game canvas to show a colored background if needed.
@@ -155,7 +160,7 @@ section .text
       ; state expected by the game when starting.
       call  game.InitializeCallback
 
-    .entry:
+    .mainloop:
       ; Check whether the game should be finalized.
       ; If so, the game loop is broken, the game state will not be updated anymore
       ; and no other frame will be rendered.
@@ -169,17 +174,19 @@ section .text
       ; events in order to process input changes beforehand.
       call  glfwPollEvents
 
-      ; Executes a tick of the game logic.
+      ; Updates the game internal logic.
       ; We must update the game logic after the processing of events and before
-      ; the next rendering routine. Every loop iteration equals one logic tick.
-      call  game.TickCallback
+      ; the next rendering routine. The game works on a constant time ticker. If
+      ; an update request happens faster than the expected tick rate, the game might
+      ; avoid updating its state to keep time consistency.
+      call  game.UpdateCallback
 
       ; Draws a frame to the window canvas.
       ; A new frame can be drawn to the window whenever the game logic is ready.
       mov   rdi, qword [window + windowT.ref]
       call  canvas.RenderCallback
 
-      jmp   .entry
+      jmp   .mainloop
 
     .exit:
       ; The game finalization callback.

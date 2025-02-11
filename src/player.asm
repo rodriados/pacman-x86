@@ -14,14 +14,14 @@ extern logArrowLeftPress
 extern logArrowRightPress
 extern logSpacePress
 
-global player.ResetState:function
+global player.PauseCallback:function
 global player.QueryPosition:function
-global player.KeyArrowUpCallback:function
-global player.KeyArrowDownCallback:function
-global player.KeyArrowLeftCallback:function
-global player.KeyArrowRightCallback:function
-global player.KeySpaceCallback:function
-global player.UpdatePosition
+global player.ResetCallback:function
+global player.SetDirectionUpCallback:function
+global player.SetDirectionDownCallback:function
+global player.SetDirectionLeftCallback:function
+global player.SetDirectionRightCallback:function
+global player.UpdatePositionCallback:function
 
 ; Represents the player's state.
 ; This structure is responsible for managing the player's global state, which will
@@ -35,8 +35,13 @@ section .data
   align 8
   state: istruc playerT
       at playerT.position,    dq 0, 0
-      at playerT.direction,   dd 0, 0
+      at playerT.direction,   dq 0, 0
     iend
+
+section .rodata
+  align 8
+  position.start:         dq float64(+13.5), float64(+17.0)
+  movement.speed:         dq float64( +0.3)
 
 ; Defining macros to help inquiring the player's position.
 ; @param (none) Gets the requested position dimension by its name.
@@ -51,42 +56,24 @@ section .data
 section .text
   ; Resets the player to its expected state at game start.
   ; @param (none) The event has no parameters.
-  player.ResetState:
-    push  rbp
-    mov   rbp, rsp
+  player.ResetCallback:
+    movapd  xmm0, oword [position.start]
+    movapd  oword [state + playerT.position], xmm0
 
-    mov   rcx, qword [initial.positionX]
-    mov   rdx, qword [initial.positionY]
-
-    mov   qword [state + playerT.positionX], rcx
-    mov   qword [state + playerT.positionY], rdx
-    mov   dword [state + playerT.direction], 0
-
-    leave
+    mov     qword [state + playerT.directionX], 0x00
+    mov     qword [state + playerT.directionY], 0x00
     ret
 
   ; Updates the player position according to the direction currently set.
   ; @param (none) The event has no parameters.
-  player.UpdatePosition:
-    push  rbp
-    mov   rbp, rsp
+  player.UpdatePositionCallback:
+    movapd        xmm0, oword [state + playerT.position]
+    movapd        xmm1, oword [state + playerT.direction]
+    vbroadcastsd  ymm2, qword [movement.speed]
 
-    movq  xmm0, qword [state + playerT.positionX]
-    movq  xmm1, qword [state + playerT.positionY]
-    movq  xmm2, qword [state + playerT.directionX]
-    movq  xmm3, qword [state + playerT.directionY]
-    movq  xmm4, qword [movement.delta]
+    vfmadd231pd   xmm0, xmm1, xmm2
 
-    mulsd xmm2, xmm4
-    mulsd xmm3, xmm4
-
-    addsd xmm0, xmm2
-    addsd xmm1, xmm3
-
-    movq  qword [state + playerT.positionX], xmm0
-    movq  qword [state + playerT.positionY], xmm1
-
-    leave
+    movapd        oword [state + playerT.position], xmm0
     ret
 
   ; Queries the player's current position.
@@ -97,28 +84,28 @@ section .text
 
   ; The player controller's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
-  player.KeyArrowUpCallback:
+  player.SetDirectionUpCallback:
     mov   rax, qword [number.zero]
     mov   rcx, qword [number.nOne]
     jmp   _.player.CommitDirectionChange
 
   ; The player controller's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
-  player.KeyArrowDownCallback:
+  player.SetDirectionDownCallback:
     mov   rax, qword [number.zero]
     mov   rcx, qword [number.pOne]
     jmp   _.player.CommitDirectionChange
 
   ; The player controller's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
-  player.KeyArrowLeftCallback:
+  player.SetDirectionLeftCallback:
     mov   rax, qword [number.nOne]
     mov   rcx, qword [number.zero]
     jmp   _.player.CommitDirectionChange
 
   ; The player controller's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
-  player.KeyArrowRightCallback:
+  player.SetDirectionRightCallback:
     mov   rax, qword [number.pOne]
     mov   rcx, qword [number.zero]
     jmp   _.player.CommitDirectionChange
@@ -133,17 +120,12 @@ section .text
 
   ; The player controller's callback for a space key press event.
   ; @param (none) The event has no parameters.
-  player.KeySpaceCallback:
+  player.PauseCallback:
     mov   qword [state + playerT.directionX], 0
     mov   qword [state + playerT.directionY], 0
     ret
 
 section .rodata
-  initial.positionX:      dq float64(+13.5)
-  initial.positionY:      dq float64(+17.0)
-
-  movement.delta:         dq float64(+0.2)
-
   number.pOne:            dq float64(+1.0)
   number.nOne:            dq float64(-1.0)
   number.zero:            dq float64(+0.0)

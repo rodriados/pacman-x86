@@ -12,7 +12,7 @@ extern fopen, fread, fclose
 extern malloc, free
 
 global sprite.board:data
-global sprite.LoadGameSprites:function
+global sprite.LoadGameSpritesCallback:function
 
 section .data
   sprite.board:             dd 0
@@ -23,7 +23,7 @@ section .rodata
 section .text
   ; Loads all sprites needed by the game into OpenGL textures.
   ; @param (none) Sprite names are retrieved from global memory.
-  sprite.LoadGameSprites:
+  sprite.LoadGameSpritesCallback:
     push  rbp
     mov   rbp, rsp
 

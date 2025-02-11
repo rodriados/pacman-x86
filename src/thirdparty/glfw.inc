@@ -10,12 +10,18 @@ extern glfwInit
 extern glfwTerminate
 extern glfwCreateWindow
 extern glfwMakeContextCurrent
+extern glfwSwapInterval
+
 extern glfwGetMonitors
 extern glfwGetMonitorPos
+extern glfwGetTime
 extern glfwGetVideoMode
 extern glfwGetWindowPos
 extern glfwGetWindowSize
 extern glfwGetWindowFrameSize
+
+extern glfwSetKeyCallback
+extern glfwSetTime
 extern glfwSetWindowPos
 extern glfwSetWindowSize
 extern glfwSetWindowCloseCallback
@@ -23,7 +29,7 @@ extern glfwSetWindowMonitor
 extern glfwSetWindowRefreshCallback
 extern glfwSetWindowSizeCallback
 extern glfwSetWindowPosCallback
-extern glfwSetKeyCallback
+
 extern glfwWindowShouldClose
 extern glfwSwapBuffers
 extern glfwPollEvents
