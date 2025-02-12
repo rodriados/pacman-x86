@@ -6,10 +6,8 @@ bits 64
 
 %use fp
 
-%include "debug.inc"
 %include "thirdparty/glfw.inc"
 
-extern player.PauseCallback
 extern player.ResetCallback
 extern player.SetDirectionUpCallback
 extern player.SetDirectionDownCallback
@@ -32,17 +30,16 @@ global game.FinalizeCallback:function
 ; be persisted through ticks and control the game's behavior.
 struc gameT
   .counter:               resd 1          ; The game's internal tick counter.
+  .paused:                resd 1
   .lastTime:              resq 1
 endstruc
 
 section .data
   state: istruc gameT
       at gameT.counter,   dd 0
+      at gameT.paused,    dd 0
       at gameT.lastTime,  dq 0
     iend
-
-section .rodata
-  frequency:      dq float64(0.03)        ; The game logic tick frequency.
 
 section .text
   ; Initializes the game state, loads assets and sets game logic to initial condition.
@@ -60,27 +57,22 @@ section .text
     leave
     ret
 
-  ; Checks whether the game state must be updated. As the game assumes a constant
-  ; time between updates, we must skip if the update frequency is too high.
+  ; Updates the game state logic and triggers changes to object's positions.
   ; @param (none) The game's state is retrieved from memory.
   game.UpdateCallback:
-      push  rbp
-      mov   rbp, rsp
+    push  rbp
+    mov   rbp, rsp
 
-      call  glfwGetTime
-      movq  xmm1, xmm0
+    call  glfwGetTime
+    movq  xmm1, xmm0
 
-      subsd   xmm0, [state + gameT.lastTime]
-      comisd  xmm0, [frequency]
-      jb      .skip
+    subsd xmm0, [state + gameT.lastTime]
+    movq  qword [state + gameT.lastTime], xmm1
 
-    .continue:
-      movq  qword [state + gameT.lastTime], xmm1
-      call  _.game.TickCallback
+    call  _.game.TickCallback
 
-    .skip:
-      leave
-      ret
+    leave
+    ret
 
   ; The game's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
@@ -109,7 +101,7 @@ section .text
   ; The game's callback for a space key press event.
   ; @param (none) The event has no parameters.
   game.KeySpaceCallback:
-    call player.PauseCallback
+    xor  dword [state + gameT.paused], 0x01
     ret
 
   ; The game logic's finalize callback.
@@ -119,39 +111,62 @@ section .text
     ret
 
   ; The game's tick event handler.
-  ; Updates the game state whenever a time tick has passed. It is assumed that two
-  ; consecutive ticks happen in constant times between each other.
-  ; @param (none) The game's internal tick counter is retrieved from memory.
+  ; Updates the game state for a tick that has passed. It is mostly assumed that
+  ; the time between two consecutive ticks are constant.
+  ; @param xmm0 The real time since the last tick update.
   _.game.TickCallback:
-    push  rbp
-    mov   rbp, rsp
+      push  rbp
+      mov   rbp, rsp
+      sub   rsp, 0x10
 
-    ; Retrieving the current game tick counter.
-    ; The tick defines the rate changes should be performed on the game's state.
-    ; We do not advance the tick here in order to allow the game logic to have total
-    ; control whether the tick should be incremented or not.
-    mov   edi, dword [state + gameT.counter]
-    call  _.game.TickGameLogicCallback
+      cmp   dword [state + gameT.paused], 0x01
+      je    .game.paused
 
-    ; Triggering game objects updates after the global game logic has been updated
-    ; and each object behaviour has been already configured for the next tick.
-    call  player.UpdatePositionCallback
+    .game.running:
+      movq  qword [rbp - 0x08], xmm0
 
-    pop   rbp
-    ret
+      ; Triggering game logic updates.
+      ; Advances the current game state that will guide the game's objects positions
+      ; update that follow next. The logic is provided with the current tick counter.
+      mov   edi, dword [state + gameT.counter]
+      call  _.game.TickGameLogicCallback
 
-; Advances one tick of the game's logic.
-  ; A tick is the game's internal time tracker. The game's logic considers that
-  ; two consecutive ticks will always have a constant real-time difference in between
-  ; them. Also, although it might not be a good practice in bigger games' projects,
-  ; here the game tick is directly related to the canvas refresh rate.
-  ; @param edi The game's internal tick counter.
-  _.game.TickGameLogicCallback:
-      push rbp
-      mov  rbp, rsp
+      ; Triggering game objects position updates.
+      ; After the global game logic has been updated and each object behaviour has
+      ; been already configured for the next tick, we must update their positions.
+      movq  xmm0, qword [rbp - 0x08]
+      call  _.game.TickGameObjectsPositionCallback
 
-    .advante.tick:
-      inc   dword [state + gameT.counter]
-
+    .game.paused:
       leave
       ret
+
+  ; Advances one tick of the game's logic.
+  ; A tick is the game's internal time tracker. The game's logic mostly considers
+  ; that two consecutive ticks will always have a constant real-time difference
+  ; in between them. Also, although it might not be a good practice in bigger games'
+  ; projects, here the game tick is directly related to the canvas refresh rate.
+  ; @param edi The game's internal tick counter.
+  _.game.TickGameLogicCallback:
+    push rbp
+    mov  rbp, rsp
+
+    inc  dword [state + gameT.counter]
+
+    leave
+    ret
+
+  ; Advances the game's objects position.
+  ; After the game logic has executed and a new game state has been produced, we
+  ; can then sequentially update the positions of every game object for a new frame.
+  ; @param xmm0 The real time since the last tick update.
+  _.game.TickGameObjectsPositionCallback:
+    push rbp
+    mov  rbp, rsp
+    sub  rsp, 0x10
+
+    movq  qword [rbp - 0x08], xmm0
+    call  player.UpdatePositionCallback
+
+    leave
+    ret

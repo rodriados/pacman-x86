@@ -6,8 +6,8 @@ bits 64
 
 %use fp
 
-global player.PauseCallback:function
 global player.QueryPosition:function
+
 global player.ResetCallback:function
 global player.SetDirectionUpCallback:function
 global player.SetDirectionDownCallback:function
@@ -37,7 +37,7 @@ section .rodata
   direction.left:         dq float64( -1.0), float64( +0.0)
   direction.right:        dq float64( +1.0), float64( +0.0)
   position.start:         dq float64(+13.5), float64(+17.0)
-  movement.speed:         dq float64(+0.35)
+  movement.speed:         dq float64( +9.5)
 
 ; Defining macros to help inquiring the player's position.
 ; @param (none) Gets the requested position dimension by its name.
@@ -61,15 +61,16 @@ section .text
     ret
 
   ; Updates the player position according to the direction currently set.
-  ; @param (none) The event has no parameters.
+  ; @param xmm0 The real time since the last position update.
   player.UpdatePositionCallback:
-    movapd        xmm0, oword [state + playerT.position]
-    movapd        xmm1, oword [state + playerT.direction]
-    vbroadcastsd  ymm2, qword [movement.speed]
+    movapd        xmm1, [state + playerT.position]
+    movapd        xmm2, [state + playerT.direction]
+    mulsd         xmm0, [movement.speed]
 
-    vfmadd231pd   xmm0, xmm1, xmm2
+    vbroadcastsd  ymm0, xmm0
+    vfmadd231pd   xmm1, xmm2, xmm0
 
-    movapd        oword [state + playerT.position], xmm0
+    movapd        oword [state + playerT.position], xmm1
     ret
 
   ; Queries the player's current position.
@@ -104,11 +105,4 @@ section .text
   player.SetDirectionRightCallback:
     movapd  xmm0, oword [direction.right]
     movapd  oword [state + playerT.direction], xmm0
-    ret
-
-  ; The player controller's callback for a space key press event.
-  ; @param (none) The event has no parameters.
-  player.PauseCallback:
-    mov   qword [state + playerT.directionX], 0
-    mov   qword [state + playerT.directionY], 0
     ret
