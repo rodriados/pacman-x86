@@ -6,14 +6,6 @@ bits 64
 
 %use fp
 
-%include "debug.inc"
-
-extern logArrowUpPress
-extern logArrowDownPress
-extern logArrowLeftPress
-extern logArrowRightPress
-extern logSpacePress
-
 global player.PauseCallback:function
 global player.QueryPosition:function
 global player.ResetCallback:function
@@ -32,16 +24,20 @@ struc playerT
 endstruc
 
 section .data
-  align 8
+  align 16
   state: istruc playerT
       at playerT.position,    dq 0, 0
       at playerT.direction,   dq 0, 0
     iend
 
 section .rodata
-  align 8
+  align 16
+  direction.up:           dq float64( +0.0), float64( -1.0)
+  direction.down:         dq float64( +0.0), float64( +1.0)
+  direction.left:         dq float64( -1.0), float64( +0.0)
+  direction.right:        dq float64( +1.0), float64( +0.0)
   position.start:         dq float64(+13.5), float64(+17.0)
-  movement.speed:         dq float64( +0.3)
+  movement.speed:         dq float64(+0.35)
 
 ; Defining macros to help inquiring the player's position.
 ; @param (none) Gets the requested position dimension by its name.
@@ -82,40 +78,32 @@ section .text
     lea   rax, [state + playerT.position]
     ret
 
-  ; The player controller's callback for a key arrow-up press event.
+  ; The callback for changing player movement direction upwards.
   ; @param (none) The event has no parameters.
   player.SetDirectionUpCallback:
-    mov   rax, qword [number.zero]
-    mov   rcx, qword [number.nOne]
-    jmp   _.player.CommitDirectionChange
+    movapd  xmm0, oword [direction.up]
+    movapd  oword [state + playerT.direction], xmm0
+    ret
 
-  ; The player controller's callback for a key arrow-up press event.
+  ; The callback for changing player movement direction downwards.
   ; @param (none) The event has no parameters.
   player.SetDirectionDownCallback:
-    mov   rax, qword [number.zero]
-    mov   rcx, qword [number.pOne]
-    jmp   _.player.CommitDirectionChange
+    movapd  xmm0, oword [direction.down]
+    movapd  oword [state + playerT.direction], xmm0
+    ret
 
-  ; The player controller's callback for a key arrow-up press event.
+  ; The callback for changing player movement direction backwards.
   ; @param (none) The event has no parameters.
   player.SetDirectionLeftCallback:
-    mov   rax, qword [number.nOne]
-    mov   rcx, qword [number.zero]
-    jmp   _.player.CommitDirectionChange
+    movapd  xmm0, oword [direction.left]
+    movapd  oword [state + playerT.direction], xmm0
+    ret
 
-  ; The player controller's callback for a key arrow-up press event.
+  ; The callback for changing player movement direction forwards.
   ; @param (none) The event has no parameters.
   player.SetDirectionRightCallback:
-    mov   rax, qword [number.pOne]
-    mov   rcx, qword [number.zero]
-    jmp   _.player.CommitDirectionChange
-
-  ; Commits a previously configured direction change.
-  ; @param rax The new X-axis speed.
-  ; @param rcx The new Y-axis speed.
-  _.player.CommitDirectionChange:
-    mov   qword [state + playerT.directionX], rax
-    mov   qword [state + playerT.directionY], rcx
+    movapd  xmm0, oword [direction.right]
+    movapd  oword [state + playerT.direction], xmm0
     ret
 
   ; The player controller's callback for a space key press event.
@@ -124,8 +112,3 @@ section .text
     mov   qword [state + playerT.directionX], 0
     mov   qword [state + playerT.directionY], 0
     ret
-
-section .rodata
-  number.pOne:            dq float64(+1.0)
-  number.nOne:            dq float64(-1.0)
-  number.zero:            dq float64(+0.0)
