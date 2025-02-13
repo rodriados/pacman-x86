@@ -8,6 +8,7 @@ bits 64
 
 %include "thirdparty/glfw.inc"
 
+extern board.ResetCallback
 extern player.ResetCallback
 extern player.SetDirectionUpCallback
 extern player.SetDirectionDownCallback
@@ -49,6 +50,8 @@ section .text
     mov   rbp, rsp
 
     call  sprite.LoadGameSpritesCallback
+
+    call  board.ResetCallback
     call  player.ResetCallback
 
     xorpd xmm0, xmm0

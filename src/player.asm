@@ -36,7 +36,7 @@ section .rodata
   direction.down:         dq float64( +0.0), float64( +1.0)
   direction.left:         dq float64( -1.0), float64( +0.0)
   direction.right:        dq float64( +1.0), float64( +0.0)
-  position.start:         dq float64(+13.5), float64(+17.0)
+  position.init:          dq float64(+13.5), float64(+23.0)
   movement.speed:         dq float64( +9.5)
 
 ; Defining macros to help inquiring the player's position.
@@ -53,7 +53,7 @@ section .text
   ; Resets the player to its expected state at game start.
   ; @param (none) The event has no parameters.
   player.ResetCallback:
-    movapd  xmm0, oword [position.start]
+    movapd  xmm0, oword [position.init]
     movapd  oword [state + playerT.position], xmm0
 
     mov     qword [state + playerT.directionX], 0x00
