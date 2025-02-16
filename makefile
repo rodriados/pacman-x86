@@ -73,7 +73,7 @@ $(NAME): $(OBJFILES) $(OBJDIR)/debug.o
 	$(LINKR) $^ $(LINKFLAGS) -o $@
 
 $(OBJDIR)/%.sprite: $(RSCDIR)/%.png
-	$(PYT3) $(SCRCONVERTSPRITE) $< $@
+	$(PYT3) $(SCRCONVERTSPRITE) -i $< -o $@
 
 .PHONY: all always debug clean
 

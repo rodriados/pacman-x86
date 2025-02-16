@@ -8,17 +8,22 @@ bits 64
 
 %include "thirdparty/opengl.inc"
 
-extern fopen, fread, fclose
-extern malloc, free
-
 global sprite.board:data
 global sprite.LoadGameSpritesCallback:function
+
+; The raw binary sprite data representation.
+; The game's binary sprite files are expected to follow this convention.
+struc spriteT
+  .width:         resd 1
+  .height:        resd 1
+  .data:          resb 0
+endstruc
 
 section .data
   sprite.board:             dd 0
 
 section .rodata
-  filename.board:           db "obj/assets/sprites/board.sprite", 0
+  raw.sprite.board:         incbin "obj/assets/sprites/board.sprite"
 
 section .text
   ; Loads all sprites needed by the game into OpenGL textures.
@@ -36,165 +41,75 @@ section .text
       call  _.sprite.LoadSpriteToTexture
     %endmacro
 
-    mapSpriteToTexture filename.board, sprite.board
+    mapSpriteToTexture raw.sprite.board, sprite.board
 
     leave
     ret
 
-  ; Loads a sprite from a raw binary image file into an OpenGL texture.
-  ; @param rdi The name of sprite file to be loaded into texture.
+  ; Loads a sprite from a raw binary blob into an OpenGL texture.
+  ; @param rdi The raw binary sprite data to be loaded into a texture.
   ; @param rsi The pointer to texture identifier to be used for this sprite.
   _.sprite.LoadSpriteToTexture:
-    %push _.context.ToggleOn
-    %stacksize flat64
-    %assign %$localsize 0x00
+    push  rbp
+    mov   rbp, rsp
 
-    %local .width:dword
-    %local .height:dword
-      push  rbp
-      mov   rbp, rsp
-      sub   rsp, %$localsize
+    push  rbx
+    push  r12
 
-      push  r12
-      push  rbx
-      mov   rbx, rsi                ; Preserving the pointer to texture identifier.
+    mov   rbx, rdi            ; Preserving the pointer to sprite data.
+    mov   r12, rsi            ; Preserving the pointer to texture.
 
-      call  _.sprite.LoadSpriteFile
-      mov   dword [.width],  ecx
-      mov   dword [.height], edx
-      mov   r12, rax                ; Preserving the pointer to image pixels.
+    mov   rdi, 0x01
+    call  glGenTextures
 
-      mov   rdi, 0x01
-      mov   rsi, rbx
-      call  glGenTextures
+    mov   rdi, GL_TEXTURE_2D
+    mov   esi, dword [r12]
+    call  glBindTexture
 
+    mov   rdi, GL_UNPACK_ALIGNMENT
+    mov   rsi, 0x01
+    call  glPixelStorei
+
+    mov   rdi, rbx
+    call  _.sprite.LoadTexture
+
+    ; Sets parameters to the currently bound texture.
+    ; @param %1 The parameter to be set.
+    ; @param %2 The value to set parameter to.
+    %macro setTextureParameter 2
       mov   rdi, GL_TEXTURE_2D
-      mov   esi, dword [rbx]
-      call  glBindTexture
+      mov   rsi, %{1}
+      mov   rdx, %{2}
+      call  glTexParameteri
+    %endmacro
 
-      mov   rdi, GL_UNPACK_ALIGNMENT
-      mov   rsi, 0x01
-      call  glPixelStorei
+    setTextureParameter GL_TEXTURE_MIN_FILTER, GL_LINEAR
+    setTextureParameter GL_TEXTURE_MAG_FILTER, GL_LINEAR
+    setTextureParameter GL_TEXTURE_WRAP_S, GL_CLAMP
+    setTextureParameter GL_TEXTURE_WRAP_T, GL_CLAMP
 
-      mov   rdx, r12
-      mov   edi, dword [.width]
-      mov   esi, dword [.height]
-      call  _.sprite.LoadTexture
+    pop   r12
+    pop   rbx
 
-      ; Sets parameters to the currently bound texture.
-      ; @param %1 The parameter to be set.
-      ; @param %2 The value to set parameter to.
-      %macro setTextureParameter 2
-        mov   rdi, GL_TEXTURE_2D
-        mov   rsi, %{1}
-        mov   rdx, %{2}
-        call  glTexParameteri
-      %endmacro
-
-      setTextureParameter GL_TEXTURE_MIN_FILTER, GL_LINEAR
-      setTextureParameter GL_TEXTURE_MAG_FILTER, GL_LINEAR
-      setTextureParameter GL_TEXTURE_WRAP_S, GL_CLAMP
-      setTextureParameter GL_TEXTURE_WRAP_T, GL_CLAMP
-
-      mov   rdi, r12
-      call  free
-
-      pop   rbx
-      pop   r12
-
-      leave
-      ret
-    %pop
-
-  ; Loads the contents of a raw binary sprite file into memory.
-  ; @param rdi The name of the sprite file to be loaded into memory.
-  ; @return rax The owned pointer to memory where sprite is loaded.
-  ; @return ecx The width of the loaded sprite in pixels.
-  ; @return edx The heigth of the loaded sprite in pixels.
-  _.sprite.LoadSpriteFile:
-    %push _.context.ToggleOn
-    %stacksize flat64
-    %assign %$localsize 0x00
-
-    %local .width:dword
-    %local .height:dword
-      push  rbp
-      mov   rbp, rsp
-      sub   rsp, %$localsize
-
-      push  rbx
-      push  r12
-      push  r13
-
-      ; Opening the sprite file in binary readonly mode. The logic for loading sprites
-      ; here implemented assumes that every sprite file has been created by the
-      ; project's sprite converter script.
-      lea   rsi, [file.mode]
-      call  fopen
-
-      mov   rbx, rax                ; Preserving sprite file pointer.
-
-      mov   rcx, rbx
-      mov   rdx, 0x01
-      mov   rsi, 0x04
-      lea   rdi, [.width]
-      call  fread
-
-      mov   rcx, rbx
-      mov   rdx, 0x01
-      mov   rsi, 0x04
-      lea   rdi, [.height]
-      call  fread
-
-      xor   rax, rax
-      mov   eax, 0x04
-      mul   dword [.width]
-      mul   dword [.height]
-
-      mov   r12, rax
-      mov   rdi, rax
-      call  malloc
-
-      mov   r13, rax                ; Preserving the malloc'd memory pointer.
-
-      ; Reading the pixel bytes from the sprite binary file. It is assumed that
-      ; the sprite's pixel bytes are in raw RBGA format.
-      mov   rdi, r13
-      mov   rsi, r12
-      mov   rdx, 0x01
-      mov   rcx, rbx
-      call  fread
-
-      mov   rdi, rbx
-      call  fclose
-
-      mov   rax, r13
-      mov   ecx, dword [.width]
-      mov   edx, dword [.height]
-
-      pop   r13
-      pop   r12
-      pop   rbx
-
-      leave
-      ret
-    %pop
+    leave
+    ret
 
   ; Loads a texture into OpenGL from sprite's pixel data.
-  ; @param edi The width of the spite image to be loaded.
-  ; @param esi The height of the sprite image to be loaded.
-  ; @param rdx The pointer to memory holding the sprite's pixel data.
+  ; @param rdi The raw binary sprite data.
   _.sprite.LoadTexture:
     push  rbp
     mov   rbp, rsp
     sub   rsp, 0x08
 
-    push  rdx
+    mov   ecx, dword [rdi + spriteT.width]
+    mov   r8d, dword [rdi + spriteT.height]
+
+    lea   rax, [rdi + spriteT.data]
+    push  rax
+
     push  GL_UNSIGNED_BYTE
     push  GL_RGBA
 
-    mov   r8d, esi
-    mov   ecx, edi
     mov   r9d, 0x00
     mov   esi, 0x00
     mov   edx, GL_RGBA
@@ -203,6 +118,3 @@ section .text
 
     leave
     ret
-
-section .rodata
-  file.mode                 db "rb", 0
