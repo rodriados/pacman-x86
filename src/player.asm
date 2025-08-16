@@ -9,10 +9,11 @@ bits 64
 global player.QueryPosition:function
 
 global player.ResetCallback:function
-global player.SetDirectionUpCallback:function
-global player.SetDirectionDownCallback:function
-global player.SetDirectionLeftCallback:function
-global player.SetDirectionRightCallback:function
+global player.EnqueueDirectionUpCallback:function
+global player.EnqueueDirectionDownCallback:function
+global player.EnqueueDirectionLeftCallback:function
+global player.EnqueueDirectionRightCallback:function
+global player.DequeueDirectionCallback:function
 global player.UpdatePositionCallback:function
 
 ; Represents the player's state.
@@ -36,6 +37,7 @@ section .rodata
   direction.down:         dq float64( +0.0), float64( +1.0)
   direction.left:         dq float64( -1.0), float64( +0.0)
   direction.right:        dq float64( +1.0), float64( +0.0)
+  direction.clear:        dq float64( +0.0), float64( +0.0)
   position.init:          dq float64(+13.5), float64(+23.0)
   movement.speed:         dq float64( +9.5)
 
@@ -74,35 +76,35 @@ section .text
     ret
 
   ; Queries the player's current position.
-  ; @return Pointer to the player's current position.
+  ; @return rax Pointer to the player's current position.
   player.QueryPosition:
     lea   rax, [state + playerT.position]
     ret
 
   ; The callback for changing player movement direction upwards.
   ; @param (none) The event has no parameters.
-  player.SetDirectionUpCallback:
+  player.EnqueueDirectionUpCallback:
     movapd  xmm0, oword [direction.up]
     movapd  oword [state + playerT.direction], xmm0
     ret
 
   ; The callback for changing player movement direction downwards.
   ; @param (none) The event has no parameters.
-  player.SetDirectionDownCallback:
+  player.EnqueueDirectionDownCallback:
     movapd  xmm0, oword [direction.down]
     movapd  oword [state + playerT.direction], xmm0
     ret
 
   ; The callback for changing player movement direction backwards.
   ; @param (none) The event has no parameters.
-  player.SetDirectionLeftCallback:
+  player.EnqueueDirectionLeftCallback:
     movapd  xmm0, oword [direction.left]
     movapd  oword [state + playerT.direction], xmm0
     ret
 
   ; The callback for changing player movement direction forwards.
   ; @param (none) The event has no parameters.
-  player.SetDirectionRightCallback:
+  player.EnqueueDirectionRightCallback:
     movapd  xmm0, oword [direction.right]
     movapd  oword [state + playerT.direction], xmm0
     ret

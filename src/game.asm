@@ -10,10 +10,11 @@ bits 64
 
 extern board.ResetCallback
 extern player.ResetCallback
-extern player.SetDirectionUpCallback
-extern player.SetDirectionDownCallback
-extern player.SetDirectionLeftCallback
-extern player.SetDirectionRightCallback
+extern player.EnqueueDirectionUpCallback
+extern player.EnqueueDirectionDownCallback
+extern player.EnqueueDirectionLeftCallback
+extern player.EnqueueDirectionRightCallback
+extern player.DequeueDirectionCallback
 extern player.UpdatePositionCallback
 extern sprite.LoadGameSpritesCallback
 
@@ -77,28 +78,37 @@ section .text
     leave
     ret
 
+  ; Skips an instruction if the game state is currently paused.
+  ; @param %1 The instruction to skip when game is paused.
+  %macro pausable 1+
+      cmp  dword [state + gameT.paused], 0x01
+      je   %%fallthrough
+      %{1}
+    %%fallthrough:
+  %endmacro
+
   ; The game's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowUpCallback:
-    call player.SetDirectionUpCallback
+    pausable call player.EnqueueDirectionUpCallback
     ret
 
   ; The game's callback for a key arrow-down press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowDownCallback:
-    call player.SetDirectionDownCallback
+    pausable call player.EnqueueDirectionDownCallback
     ret
 
   ; The game's callback for a key arrow-left press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowLeftCallback:
-    call player.SetDirectionLeftCallback
+    pausable call player.EnqueueDirectionLeftCallback
     ret
 
   ; The game's callback for a key arrow-right press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowRightCallback:
-    call player.SetDirectionRightCallback
+    pausable call player.EnqueueDirectionRightCallback
     ret
 
   ; The game's callback for a space key press event.

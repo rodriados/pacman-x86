@@ -11,6 +11,7 @@ extern game.KeyArrowDownCallback
 extern game.KeyArrowLeftCallback
 extern game.KeyArrowRightCallback
 extern game.KeySpaceCallback
+extern game.RelaseKeyArrowCallback
 extern fullscreen.ToggleCallback
 
 global keyboard.KeyCallback:function
@@ -23,27 +24,27 @@ section .text
   ; @param edx The event key's scan code, that may be platform-specific.
   ; @param ecx The event key's action, that may be press, release or repeat.
   keyboard.KeyCallback:
-      cmp   ecx, GLFW_PRESS
-      jne   .quit
-
       ; Maps a key value to a callback and executes it if is the current event.
-      ; @param %1 The identifier of key to be mapped to a callback.
-      ; @param %2 The callback to be executed if the current event matches.
+      ; @param %1 The key action to map to a callback.
+      ; @param %2 The identifier of key to be mapped to a callback.
+      ; @param %3 The callback to be executed if the current event matches.
       ; @param edi The event to be executed.
-      %macro mapCallback 2
-          cmp   esi, %{1}
+      %macro mapCallback 3
+          cmp   ecx, %{1}
           jne   %%fallthrough
-          call  %{2}
+          cmp   esi, %{2}
+          jne   %%fallthrough
+          call  %{3}
           jmp   .quit
         %%fallthrough:
       %endmacro
 
-      mapCallback GLFW_KEY_UP,    game.KeyArrowUpCallback
-      mapCallback GLFW_KEY_DOWN,  game.KeyArrowDownCallback
-      mapCallback GLFW_KEY_LEFT,  game.KeyArrowLeftCallback
-      mapCallback GLFW_KEY_RIGHT, game.KeyArrowRightCallback
-      mapCallback GLFW_KEY_SPACE, game.KeySpaceCallback
-      mapCallback GLFW_KEY_F11,   fullscreen.ToggleCallback
+      mapCallback GLFW_PRESS, GLFW_KEY_UP,    game.KeyArrowUpCallback
+      mapCallback GLFW_PRESS, GLFW_KEY_DOWN,  game.KeyArrowDownCallback
+      mapCallback GLFW_PRESS, GLFW_KEY_LEFT,  game.KeyArrowLeftCallback
+      mapCallback GLFW_PRESS, GLFW_KEY_RIGHT, game.KeyArrowRightCallback
+      mapCallback GLFW_PRESS, GLFW_KEY_SPACE, game.KeySpaceCallback
+      mapCallback GLFW_PRESS, GLFW_KEY_F11,   fullscreen.ToggleCallback
 
     .quit:
       ret

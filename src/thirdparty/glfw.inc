@@ -43,5 +43,8 @@ GLFW_KEY_DOWN:          equ 264
 GLFW_KEY_UP:            equ 265
 GLFW_KEY_F11:           equ 300
 
+GLFW_RELEASE:           equ   0
 GLFW_PRESS:             equ   1
+GLFW_REPEAT:            equ   2
+
 GLFW_DONT_CARE:         equ  -1
