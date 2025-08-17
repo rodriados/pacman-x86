@@ -7,10 +7,11 @@ bits 64
 %use fp
 
 %include "debug.inc"
+%include "logic/character.inc"
 %include "thirdparty/opengl.inc"
 
+extern pacman.entity
 extern sprite.board
-extern player.QueryPosition
 
 global render.DrawFrameCallback:function
 
@@ -144,7 +145,7 @@ section .text
     mov   r12, qword [number.zero]
     mov   r13, qword [number.pOne]
 
-    call  player.QueryPosition
+    lea   rax, [pacman.entity + characterT.position]
     mov   r14, qword [rax + 0x00]
     mov   r15, qword [rax + 0x08]
 

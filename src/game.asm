@@ -9,13 +9,13 @@ bits 64
 %include "thirdparty/glfw.inc"
 
 extern board.ResetCallback
-extern player.ResetCallback
+extern pacman.ResetCallback
+extern pacman.UpdatePositionCallback
 extern player.EnqueueDirectionUpCallback
 extern player.EnqueueDirectionDownCallback
 extern player.EnqueueDirectionLeftCallback
 extern player.EnqueueDirectionRightCallback
 extern player.DequeueDirectionCallback
-extern player.UpdatePositionCallback
 extern sprite.LoadGameSpritesCallback
 
 global game.InitializeCallback:function
@@ -37,7 +37,7 @@ struc gameT
 endstruc
 
 section .data
-  state: istruc gameT
+  game.state: istruc gameT
       at gameT.counter,   dd 0
       at gameT.paused,    dd 0
       at gameT.lastTime,  dq 0
@@ -53,7 +53,7 @@ section .text
     call  sprite.LoadGameSpritesCallback
 
     call  board.ResetCallback
-    call  player.ResetCallback
+    call  pacman.ResetCallback
 
     xorpd xmm0, xmm0
     call  glfwSetTime         ; Resets the window timer.
@@ -61,7 +61,7 @@ section .text
     leave
     ret
 
-  ; Updates the game state logic and triggers changes to object's positions.
+  ; Updates the game state logic and triggers changes to entities' positions.
   ; @param (none) The game's state is retrieved from memory.
   game.UpdateCallback:
     push  rbp
@@ -70,51 +70,46 @@ section .text
     call  glfwGetTime
     movq  xmm1, xmm0
 
-    subsd xmm0, [state + gameT.lastTime]
-    movq  qword [state + gameT.lastTime], xmm1
+    subsd xmm0, [game.state + gameT.lastTime]
+    movq  qword [game.state + gameT.lastTime], xmm1
 
     call  _.game.TickCallback
 
     leave
     ret
 
-  ; Skips an instruction if the game state is currently paused.
-  ; @param %1 The instruction to skip when game is paused.
-  %macro pausable 1+
-      cmp  dword [state + gameT.paused], 0x01
-      je   %%fallthrough
-      %{1}
-    %%fallthrough:
-  %endmacro
-
   ; The game's callback for a key arrow-up press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowUpCallback:
-    pausable call player.EnqueueDirectionUpCallback
+    cmp dword [game.state + gameT.paused], 0x01
+    jne player.EnqueueDirectionUpCallback
     ret
 
   ; The game's callback for a key arrow-down press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowDownCallback:
-    pausable call player.EnqueueDirectionDownCallback
+    cmp dword [game.state + gameT.paused], 0x01
+    jne player.EnqueueDirectionDownCallback
     ret
 
   ; The game's callback for a key arrow-left press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowLeftCallback:
-    pausable call player.EnqueueDirectionLeftCallback
+    cmp dword [game.state + gameT.paused], 0x01
+    jne player.EnqueueDirectionLeftCallback
     ret
 
   ; The game's callback for a key arrow-right press event.
   ; @param (none) The event has no parameters.
   game.KeyArrowRightCallback:
-    pausable call player.EnqueueDirectionRightCallback
+    cmp dword [game.state + gameT.paused], 0x01
+    jne player.EnqueueDirectionRightCallback
     ret
 
   ; The game's callback for a space key press event.
   ; @param (none) The event has no parameters.
   game.KeySpaceCallback:
-    xor  dword [state + gameT.paused], 0x01
+    xor dword [game.state + gameT.paused], 0x01
     ret
 
   ; The game logic's finalize callback.
@@ -132,23 +127,23 @@ section .text
       mov   rbp, rsp
       sub   rsp, 0x10
 
-      cmp   dword [state + gameT.paused], 0x01
+      cmp   dword [game.state + gameT.paused], 0x01
       je    .game.paused
 
     .game.running:
       movq  qword [rbp - 0x08], xmm0
 
       ; Triggering game logic updates.
-      ; Advances the current game state that will guide the game's objects positions
+      ; Advances the current game state that will guide the game's entities positions
       ; update that follow next. The logic is provided with the current tick counter.
-      mov   edi, dword [state + gameT.counter]
-      call  _.game.TickGameLogicCallback
+      mov   edi, dword [game.state + gameT.counter]
+      call  _.game.TickLogicCallback
 
-      ; Triggering game objects position updates.
-      ; After the global game logic has been updated and each object behaviour has
+      ; Triggering game entities position updates.
+      ; After the global game logic has been updated and each entity behavior has
       ; been already configured for the next tick, we must update their positions.
       movq  xmm0, qword [rbp - 0x08]
-      call  _.game.TickGameObjectsPositionCallback
+      call  _.game.TickEntitiesPositionCallback
 
     .game.paused:
       leave
@@ -160,26 +155,26 @@ section .text
   ; in between them. Also, although it might not be a good practice in bigger games'
   ; projects, here the game tick is directly related to the canvas refresh rate.
   ; @param edi The game's internal tick counter.
-  _.game.TickGameLogicCallback:
+  _.game.TickLogicCallback:
     push rbp
     mov  rbp, rsp
 
-    inc  dword [state + gameT.counter]
+    inc  dword [game.state + gameT.counter]
 
     leave
     ret
 
-  ; Advances the game's objects position.
+  ; Advances the game's entities position.
   ; After the game logic has executed and a new game state has been produced, we
-  ; can then sequentially update the positions of every game object for a new frame.
+  ; can then sequentially update the positions of every game entity for a new frame.
   ; @param xmm0 The real time since the last tick update.
-  _.game.TickGameObjectsPositionCallback:
+  _.game.TickEntitiesPositionCallback:
     push rbp
     mov  rbp, rsp
     sub  rsp, 0x10
 
     movq  qword [rbp - 0x08], xmm0
-    call  player.UpdatePositionCallback
+    call  pacman.UpdatePositionCallback
 
     leave
     ret
