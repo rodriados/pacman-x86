@@ -23,3 +23,16 @@
       %{1}
   %endif
 %endmacro
+
+; Exposes a function with an alternative name when debug mode is active.
+; @param %1 The function to be exposed for debugging mode.
+; @param %2 The debugging name alias to use for the exposed function.
+%macro dbgexport 2
+  %if debug.active
+    [section .text]
+      global %{2}:function
+      %{2}:
+        call %{1}
+        ret
+  %endif
+%endmacro

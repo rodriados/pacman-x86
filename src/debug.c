@@ -52,7 +52,7 @@ extern double getFrameRate()
  * Enumerates the colors that may selected for checkboard squares.
  * @since 1.0
  */
-typedef enum { GREEN, BLUE } checkboard_color_t;
+typedef enum { BLACK, BLUE, GREEN, YELLOW, RED, PURPLE } checkboard_color_t;
 
 /**
  * Sets the color for the checkboard squares to be rendered next.
@@ -61,8 +61,12 @@ typedef enum { GREEN, BLUE } checkboard_color_t;
 static void setCheckboardColor(checkboard_color_t color)
 {
     switch (color) {
-        case GREEN: glColor3f(.0f, .3f, .0f); break;
-        case BLUE:  glColor3f(.0f, .0f, .3f); break;
+        case BLACK:  glColor3f(.0f, .0f, .0f); break;
+        case BLUE:   glColor3f(.0f, .0f, .1f); break;
+        case GREEN:  glColor3f(.0f, .1f, .0f); break;
+        case YELLOW: glColor3f(.1f, .1f, .0f); break;
+        case RED:    glColor3f(.1f, .0f, .0f); break;
+        case PURPLE: glColor3f(.1f, .0f, .1f); break;
         default:    break;
     }
 }
@@ -88,9 +92,9 @@ extern void drawCheckboard()
 {
     glBegin(GL_QUADS);
 
-    for (uint32_t x = 0, n = 0; x < 28; ++x) {
-        for (uint32_t y = 0; y < 31; ++y, ++n) {
-            setCheckboardColor((n & 1) ? GREEN : BLUE);
+    for (uint32_t y = 0; y < 31; ++y) {
+        for (uint32_t x = 0; x < 28; ++x) {
+            setCheckboardColor(getBoardCellState(x, y));
             drawCheckboardSquare(x, y);
         }
     }

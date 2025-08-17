@@ -4,10 +4,14 @@
 ; @copyright 2025-present Rodrigo Siqueira
 bits 64
 
+%include "debug.inc"
 %include "board.inc"
 
 global board.state:data
+global board.GetCellState:function
 global board.ResetCallback:function
+
+dbgexport board.GetCellState, getBoardCellState
 
 section .rodata
   ; The initial board state.
@@ -30,7 +34,7 @@ section .rodata
     db _,_,_,_,_,_,3,_,_,2,2,2,2,2,2,2,2,2,2,_,_,3,_,_,_,_,_,_
     db _,_,_,_,_,_,3,_,_,2,_,_,_,1,1,_,_,_,2,_,_,3,_,_,_,_,_,_
     db _,_,_,_,_,_,3,_,_,2,_,1,1,1,1,1,1,_,2,_,_,3,_,_,_,_,_,_
-    db 2,2,2,2,2,2,3,2,2,2,_,1,1,1,1,1,1,_,2,2,2,3,2,2,2,2,2,2
+    db 5,5,5,2,2,2,3,2,2,2,_,1,1,1,1,1,1,_,2,2,2,3,2,2,2,5,5,5
     db _,_,_,_,_,_,3,_,_,2,_,1,1,1,1,1,1,_,2,_,_,3,_,_,_,_,_,_
     db _,_,_,_,_,_,3,_,_,2,_,_,_,_,_,_,_,_,2,_,_,3,_,_,_,_,_,_
     db _,_,_,_,_,_,3,_,_,2,2,2,2,2,2,2,2,2,2,_,_,3,_,_,_,_,_,_
@@ -39,7 +43,7 @@ section .rodata
     db _,3,3,3,3,3,3,3,3,3,3,3,3,_,_,3,3,3,3,3,3,3,3,3,3,3,3,_
     db _,3,_,_,_,_,3,_,_,_,_,_,3,_,_,3,_,_,_,_,_,3,_,_,_,_,3,_
     db _,3,_,_,_,_,3,_,_,_,_,_,3,_,_,3,_,_,_,_,_,3,_,_,_,_,3,_
-    db _,4,3,3,_,_,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,_,_,3,3,4,_
+    db _,4,3,3,_,_,3,3,3,3,3,3,3,2,2,3,3,3,3,3,3,3,_,_,3,3,4,_
     db _,_,_,3,_,_,3,_,_,3,_,_,_,_,_,_,_,_,3,_,_,3,_,_,3,_,_,_
     db _,_,_,3,_,_,3,_,_,3,_,_,_,_,_,_,_,_,3,_,_,3,_,_,3,_,_,_
     db _,3,3,3,3,3,3,_,_,3,3,3,3,_,_,3,3,3,3,_,_,3,3,3,3,3,3,_
@@ -63,4 +67,20 @@ section .text
     mov rsi, board.init
     mov rdi, board.state
     rep movsb
+    ret
+
+  ; Retrieves the current state of a game board cell.
+  ; @param rdi The x-value of the cell to be retrieved.
+  ; @param rsi The y-value of the cell to be retrieved.
+  ; @return ax The requested cell state.
+  board.GetCellState:
+    mov rax, rsi
+    mov rdx, board.width
+    mul dl
+
+    add rax, rdi
+    mov dl, byte [board.state + rax]
+
+    xor ax, ax
+    mov al, dl
     ret

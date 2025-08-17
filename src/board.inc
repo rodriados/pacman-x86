@@ -17,3 +17,4 @@ board.square.ghost:     equ  1
 board.square.walkable:  equ  2
 board.square.food:      equ  3
 board.square.powerup:   equ  4
+board.square.warp:      equ  5
