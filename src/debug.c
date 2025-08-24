@@ -10,6 +10,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <GL/gl.h>
+#include <GLFW/glfw3.h>
+
+extern uint8_t __dbg_GetBoardState(uint32_t, uint32_t);
 
 /**
  * Prints a message to the console informing the player that the game has debug
@@ -94,7 +97,7 @@ extern void drawCheckboard()
 
     for (uint32_t y = 0; y < 31; ++y) {
         for (uint32_t x = 0; x < 28; ++x) {
-            setCheckboardColor(getBoardCellState(x, y));
+            setCheckboardColor(__dbg_GetBoardState(x, y));
             drawCheckboardSquare(x, y);
         }
     }

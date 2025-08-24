@@ -20,7 +20,8 @@ section .data
       at characterT.position,        times 2 dq 0
       at characterT.direction,       times 2 dq 0
       at characterT.direction.queue, times 2 dq 0
-      at characterT.track,           times 4 dq 0
+      at characterT.track.begin,     times 2 dq 0
+      at characterT.track.end,       times 2 dq 0
       at characterT.speed,           dq 0
       at characterT.warping,         db 0
     iend
@@ -42,8 +43,8 @@ section .text
     movapd xmm0, oword [position.init]
     movapd oword [pacman.entity + characterT.position], xmm0
 
-    mov rax, qword [speed.default]
-    mov qword [pacman.entity + characterT.speed], rax
+    movq  xmm0, qword [speed.default]
+    movq  qword [pacman.entity + characterT.speed], xmm0
     ret
 
   ; Ticks Pacman position update.

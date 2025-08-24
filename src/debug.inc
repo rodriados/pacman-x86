@@ -30,8 +30,8 @@
 %macro dbgexport 2
   %if debug.active
     [section .text]
-      global %{2}:function
-      %{2}:
+      global __dbg_%{2}:function
+      __dbg_%{2}:
         call %{1}
         ret
   %endif

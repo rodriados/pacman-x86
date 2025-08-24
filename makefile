@@ -44,7 +44,7 @@ all: always debug
 always: $(OBJHIERARCHY)
 
 debug: always
-debug: override ENV = -g -DDEBUG
+debug: override ENV = $(DEBUG) -g -DDEBUG -F dwarf
 debug: $(BINFILES) $(NAME)
 
 clean:

@@ -10,7 +10,8 @@ struc characterT
   .position:        resq 2
   .direction:       resq 2
   .direction.queue: resq 2
-  .track:           resq 4
+  .track.begin:     resq 2
+  .track.end:       resq 2
   .speed:           resq 1
   .warping:         resb 1
 endstruc

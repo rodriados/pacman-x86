@@ -8,10 +8,10 @@ bits 64
 %include "board.inc"
 
 global board.state:data
-global board.GetCellState:function
+global board.GetState:function
 global board.ResetCallback:function
 
-dbgexport board.GetCellState, getBoardCellState
+dbgexport board.GetState, GetBoardState
 
 section .rodata
   ; The initial board state.
@@ -70,17 +70,15 @@ section .text
     ret
 
   ; Retrieves the current state of a game board cell.
-  ; @param rdi The x-value of the cell to be retrieved.
-  ; @param rsi The y-value of the cell to be retrieved.
-  ; @return ax The requested cell state.
-  board.GetCellState:
-    mov rax, rsi
-    mov rdx, board.width
+  ; @param edi The x-value of the cell to be retrieved.
+  ; @param esi The y-value of the cell to be retrieved.
+  ; @return al The requested cell state.
+  board.GetState:
+    mov eax, esi
+    mov edx, board.width
     mul dl
 
-    add rax, rdi
-    mov dl, byte [board.state + rax]
+    add eax, edi
+    mov al,  byte [board.state + eax]
 
-    xor ax, ax
-    mov al, dl
     ret
